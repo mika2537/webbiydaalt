@@ -1,9 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { FiHome, FiBookOpen, FiHelpCircle, FiEdit3, FiTrendingUp, FiUsers, FiSettings, FiX } from "react-icons/fi";
 import { GiGraduateCap } from "react-icons/gi";
 
 const Sidebar = ({ isOpen, onClose, user }) => {
     const [activeMenu, setActiveMenu] = useState("courses");
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.pathname.startsWith("/team5/courses")) {
+            setActiveMenu("courses");
+        }
+    }, [location.pathname]);
 
     const menuItems = [
         { id: "home", label: "Нүүр хуудас", icon: FiHome },
@@ -83,7 +92,19 @@ const Sidebar = ({ isOpen, onClose, user }) => {
                                 return (
                                     <button
                                         key={item.id}
-                                        onClick={() => setActiveMenu(item.id)}
+                                        onClick={() => {
+                                            if (item.id === "courses") {
+                                                setActiveMenu("courses");
+                                                navigate("/team5/courses");
+                                                onClose?.();
+                                            } else if (item.id === "edit") {
+                                                setActiveMenu("edit");
+                                                navigate("/team5/edit");
+                                                onClose?.();
+                                            } else {
+                                                setActiveMenu(item.id);
+                                            }
+                                        }}
                                         className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${
                                             activeMenu === item.id
                                                 ? "bg-orange-100 text-orange-700"
@@ -108,7 +129,15 @@ const Sidebar = ({ isOpen, onClose, user }) => {
                                 return (
                                     <button
                                         key={item.id}
-                                        onClick={() => setActiveMenu(item.id)}
+                                        onClick={() => {
+                                            if (item.id === "edit") {
+                                                setActiveMenu("edit");
+                                                navigate("/team5/edit");
+                                                onClose?.();
+                                            } else {
+                                                setActiveMenu(item.id);
+                                            }
+                                        }}
                                         className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${
                                             activeMenu === item.id
                                                 ? "bg-orange-100 text-orange-700"

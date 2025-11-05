@@ -1,8 +1,12 @@
 import { useState, useContext, useEffect } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { UserContext } from "../contexts/UserContext";
 import Sidebar from "./Sidebar";
 import ContentHeader from "./ContentHeader";
 import CourseGrid from "./CourseGrid";
+import CoursesPage from "./CoursesPage";
+import EditDashboard from "./EditDashboard";
+import QuestionEditor from "./QuestionEditor";
 import { FiMenu } from "react-icons/fi";
 
 const Index = () => {
@@ -94,7 +98,16 @@ const Index = () => {
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col ml-0 transition-all duration-300">
                 <ContentHeader />
-                <CourseGrid />
+                <div className="flex-1 overflow-auto">
+                    <Routes>
+                        <Route index element={<Navigate to="courses" replace />} />
+                        <Route path="courses" element={<CoursesPage />} />
+                        <Route path="edit" element={<EditDashboard />} />
+                        <Route path="edit/:type/:mode" element={<QuestionEditor />} />
+                        {/* Fallback to courses for unknown paths under team5 */}
+                        <Route path="*" element={<Navigate to="courses" replace />} />
+                    </Routes>
+                </div>
             </div>
         </div>
     );
