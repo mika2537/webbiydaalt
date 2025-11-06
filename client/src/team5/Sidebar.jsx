@@ -11,6 +11,10 @@ const Sidebar = ({ isOpen, onClose, user }) => {
     useEffect(() => {
         if (location.pathname.startsWith("/team5/courses")) {
             setActiveMenu("courses");
+        } else if (location.pathname.startsWith("/team5/questions")) {
+            setActiveMenu("questions");
+        } else if (location.pathname.startsWith("/team5/edit")) {
+            setActiveMenu("edit");
         }
     }, [location.pathname]);
 
@@ -18,7 +22,7 @@ const Sidebar = ({ isOpen, onClose, user }) => {
         { id: "home", label: "Нүүр хуудас", icon: FiHome },
         { id: "courses", label: "Миний хичээлүүд", icon: GiGraduateCap },
         { id: "materials", label: "Сургалтын материал", icon: FiBookOpen },
-        { id: "questions", label: "Асуултын сан", icon: FiHelpCircle },
+        { id: "questions", label: "Асуултын сан", icon: FiHelpCircle }, // UPDATED: This now goes to question bank
     ];
 
     const assignmentItems = [
@@ -97,6 +101,10 @@ const Sidebar = ({ isOpen, onClose, user }) => {
                                                 setActiveMenu("courses");
                                                 navigate("/team5/courses");
                                                 onClose?.();
+                                            } else if (item.id === "questions") {
+                                                setActiveMenu("questions");
+                                                navigate("/team5/questions"); // UPDATED: Navigate to question bank
+                                                onClose?.();
                                             } else if (item.id === "edit") {
                                                 setActiveMenu("edit");
                                                 navigate("/team5/edit");
@@ -171,4 +179,3 @@ const Sidebar = ({ isOpen, onClose, user }) => {
 };
 
 export default Sidebar;
-
