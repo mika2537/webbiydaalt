@@ -22,18 +22,18 @@ const Sidebar = ({ isOpen, onClose, user }) => {
   const LOGIN_ROUTE = "/login";
 
 
-  useEffect(() => {
-    if (location.pathname.startsWith("/team5/courses")) {
-      setActiveMenu("courses");
-    }
-  }, [location.pathname]);
+    useEffect(() => {
+        if (location.pathname.startsWith("/team5/courses")) {
+            setActiveMenu("courses");
+        }
+    }, [location.pathname]);
 
-  const menuItems = [
-    { id: "home", label: "Нүүр хуудас", icon: FiHome },
-    { id: "courses", label: "Миний хичээлүүд", icon: GiGraduateCap },
-    { id: "materials", label: "Сургалтын материал", icon: FiBookOpen },
-    { id: "questions", label: "Асуултын сан", icon: FiHelpCircle },
-  ];
+    const menuItems = [
+        { id: "home", label: "Нүүр хуудас", icon: FiHome },
+        { id: "courses", label: "Миний хичээлүүд", icon: GiGraduateCap },
+        { id: "materials", label: "Сургалтын материал", icon: FiBookOpen },
+        { id: "questions", label: "Асуултын сан", icon: FiHelpCircle },
+    ];
 
   const assignmentItems = [
     { id: "edit", label: "Даалгавар засварлах", icon: FiEdit3 },
@@ -100,38 +100,38 @@ const Sidebar = ({ isOpen, onClose, user }) => {
             </div>
           </div>
 
-          {/* Menu Items */}
-          <div className="flex-1 overflow-y-auto py-4">
-            <nav className="space-y-1 px-3">
-              {menuItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      if (item.id === "courses") {
-                        setActiveMenu("courses");
-                        navigate("/team5/courses");
-                        onClose?.();
-                      } else if (item.id === "edit") {
-                        setActiveMenu("edit");
-                        navigate("/team5/edit");
-                        onClose?.();
-                      } else {
-                        setActiveMenu(item.id);
-                      }
-                    }}
-                    className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${
-                      activeMenu === item.id
-                        ? "bg-orange-100 text-orange-700"
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    <Icon className="w-5 h-5 mr-3" />
-                    <span className="font-medium">{item.label}</span>
-                  </button>
-                );
-              })}
+                    {/* Menu Items */}
+                    <div className="flex-1 overflow-y-auto py-4">
+                        <nav className="space-y-1 px-3">
+                            {menuItems.map((item) => {
+                                const Icon = item.icon;
+                                return (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => {
+                                            if (item.id === "courses") {
+                                                setActiveMenu("courses");
+                                                navigate("/team5/courses");
+                                                onClose?.();
+                                            } else if (item.id === "edit") {
+                                                setActiveMenu("edit");
+                                                navigate("/team5/edit");
+                                                onClose?.();
+                                            } else {
+                                                setActiveMenu(item.id);
+                                            }
+                                        }}
+                                        className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${
+                                            activeMenu === item.id
+                                                ? "bg-orange-100 text-orange-700"
+                                                : "text-gray-700 hover:bg-gray-100"
+                                        }`}
+                                    >
+                                        <Icon className="w-5 h-5 mr-3" />
+                                        <span className="font-medium">{item.label}</span>
+                                    </button>
+                                );
+                            })}
 
               {/* Assignment Section Header */}
               <div className="pt-4 pb-2">
@@ -208,3 +208,4 @@ const Sidebar = ({ isOpen, onClose, user }) => {
 };
 
 export default Sidebar;
+

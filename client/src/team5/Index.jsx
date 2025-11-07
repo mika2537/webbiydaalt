@@ -7,6 +7,7 @@ import CourseGrid from "./CourseGrid";
 import CoursesPage from "./CoursesPage";
 import EditDashboard from "./EditDashboard";
 import QuestionEditor from "./QuestionEditor";
+import QuestionBankPage from "./QuestionBankPage"; // ADD THIS IMPORT
 import { FiMenu } from "react-icons/fi";
 
 const Index = () => {
@@ -104,6 +105,7 @@ const Index = () => {
                         <Route path="courses" element={<CoursesPage />} />
                         <Route path="edit" element={<EditDashboard />} />
                         <Route path="edit/:type/:mode" element={<QuestionEditor />} />
+                        <Route path="questions" element={<QuestionBankPage />} /> {/* ADD THIS ROUTE */}
                         {/* Fallback to courses for unknown paths under team5 */}
                         <Route path="*" element={<Navigate to="courses" replace />} />
                     </Routes>
