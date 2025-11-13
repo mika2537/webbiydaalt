@@ -1,6 +1,5 @@
-"use client";
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { mockCourses, mockExams } from "../data/mockData";
 
 export default function ExamListPage() {
@@ -73,7 +72,7 @@ export default function ExamListPage() {
         {/* Header */}
         <div className="mb-8">
           <Link
-            href="/team6"
+            to="/team6"
             className="text-gray-600 hover:text-gray-900 mb-4 inline-block"
           >
             ← Dashboard руу буцах
@@ -92,7 +91,7 @@ export default function ExamListPage() {
               </p>
             </div>
             <Link
-              href={`/team6/exams/create`}
+              to={`/team6/exams/create`}
               className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors font-medium"
             >
               + Шинэ шалгалт нэмэх
@@ -111,7 +110,7 @@ export default function ExamListPage() {
               Энэ хичээлд одоогоор шалгалт нэмэгдээгүй байна.
             </p>
             <Link
-              href={`/team6/exams/create`}
+              to={`/team6/exams/create`}
               className="inline-block bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors"
             >
               Шалгалт нэмэх
@@ -156,25 +155,25 @@ export default function ExamListPage() {
                     </div>
                     <div className="flex gap-2">
                       <Link
-                        href={`/team6/exams/${exam.id}/variants`}
+                        to={`/team6/exams/${exam.id}/variants`}
                         className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
                       >
                         Вариантууд
                       </Link>
                       <Link
-                        href={`/team6/exams/${exam.id}/report`}
+                        to={`/team6/exams/${exam.id}/report`}
                         className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
                       >
                         Тайлан
                       </Link>
                       <Link
-                        href={`/team6/exams/${exam.id}/edit`}
+                        to={`/team6/exams/${exam.id}/edit`}
                         className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
                       >
                         Засах
                       </Link>
                       <Link
-                        href={`/team6/exams/${exam.id}`}
+                        to={`/team6/exams/${exam.id}`}
                         className="px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800"
                       >
                         Дэлгэрэнгүй

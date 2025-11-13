@@ -8,10 +8,15 @@ import TeacherHome from "./teacher/TeacherHome";
 // ✅ Import TSX exam pages manually (Vite supports .tsx)
 import ExamsPage from "./exams/page.tsx";
 import ExamCreatePage from "./exams/create/page.tsx";
+import ExamDetailPage from "./exams/[exam_id]/page.tsx";
 import ExamEditPage from "./exams/[exam_id]/edit/page.tsx";
 import ExamReportPage from "./exams/[exam_id]/report/page.tsx";
 import ExamVariantsPage from "./exams/[exam_id]/variants/page.tsx";
+import VariantCreatePage from "./exams/[exam_id]/variants/create/page.tsx";
+import VariantDetailPage from "./exams/[exam_id]/variants/[id]/page.tsx";
 import VariantEditPage from "./exams/[exam_id]/variants/[id]/edit/page.tsx";
+import StudentDetailPage from "./exams/[exam_id]/students/student_[id]/page.tsx";
+import StudentEditPage from "./exams/[exam_id]/students/student_[id]/edit/page.tsx";
 import StudentCheckPage from "./exams/[exam_id]/students/student_[id]/check/page.tsx";
 import StudentResultPage from "./exams/[exam_id]/students/student_[id]/result/page.tsx";
 
@@ -65,12 +70,29 @@ const Index = () => {
       {/* ✅ Exam routes based on your folder structure */}
       <Route path="exams" element={<ExamsPage />} />
       <Route path="exams/create" element={<ExamCreatePage />} />
+      <Route path="exams/:examId" element={<ExamDetailPage />} />
       <Route path="exams/:examId/edit" element={<ExamEditPage />} />
       <Route path="exams/:examId/report" element={<ExamReportPage />} />
       <Route path="exams/:examId/variants" element={<ExamVariantsPage />} />
       <Route
+        path="exams/:examId/variants/create"
+        element={<VariantCreatePage />}
+      />
+      <Route
+        path="exams/:examId/variants/:variantId"
+        element={<VariantDetailPage />}
+      />
+      <Route
         path="exams/:examId/variants/:variantId/edit"
         element={<VariantEditPage />}
+      />
+      <Route
+        path="exams/:examId/students/:studentId"
+        element={<StudentDetailPage />}
+      />
+      <Route
+        path="exams/:examId/students/:studentId/edit"
+        element={<StudentEditPage />}
       />
       <Route
         path="exams/:examId/students/:studentId/check"

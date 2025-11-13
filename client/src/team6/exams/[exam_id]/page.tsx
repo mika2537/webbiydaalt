@@ -1,25 +1,22 @@
-"use client";
-
-import { useParams } from "next/navigation";
-import Link from "next/link";
+import { useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { mockExams, mockVariants, mockExamStats } from "../../data/mockData";
 
 export default function ExamDetailPage() {
-  const { exam_id } = useParams<{ exam_id: string }>();
+  const { examId } = useParams();
   const [exam, setExam] = useState<any>(null);
   const [variants, setVariants] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load mock data
     const loadMockData = () => {
-      const foundExam = mockExams.find((e) => String(e.id) === String(exam_id));
+      const foundExam = mockExams.find((e) => String(e.id) === String(examId));
       const foundVariants = mockVariants.filter(
-        (v) => String(v.examId) === String(exam_id)
+        (v) => String(v.examId) === String(examId)
       );
-      const foundStats = (mockExamStats as any)[exam_id];
+      const foundStats = examId ? (mockExamStats as any)[examId] : null;
 
       setExam(foundExam);
       setVariants(foundVariants);
@@ -27,7 +24,7 @@ export default function ExamDetailPage() {
       setLoading(false);
     };
     loadMockData();
-  }, [exam_id]);
+  }, [examId]);
 
   const getStatusBadge = (status: string) => {
     const badges: any = {
@@ -79,7 +76,7 @@ export default function ExamDetailPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Шалгалт олдсонгүй
           </h2>
-          <Link href="/team6/exams" className="text-black hover:underline">
+          <Link to="/team6/exams" className="text-black hover:underline">
             Буцах
           </Link>
         </div>
@@ -93,7 +90,7 @@ export default function ExamDetailPage() {
         {/* Header */}
         <div className="mb-6">
           <Link
-            href="/team6/exams"
+            to="/team6/exams"
             className="text-gray-600 hover:text-gray-900 mb-4 inline-block"
           >
             ← Буцах
@@ -159,7 +156,7 @@ export default function ExamDetailPage() {
               Вариантууд ({variants.length})
             </h2>
             <Link
-              href={`/team6/exams/${exam_id}/variants/create`}
+              to={`/team6/exams/${examId}/variants/create`}
               className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium"
             >
               + Вариант нэмэх
@@ -174,7 +171,7 @@ export default function ExamDetailPage() {
               {variants.map((variant) => (
                 <Link
                   key={variant.id}
-                  href={`/team6/exams/${exam_id}/variants/${variant.id}`}
+                  to={`/team6/exams/${examId}/variants/${variant.id}`}
                   className="block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center justify-between">
@@ -199,13 +196,13 @@ export default function ExamDetailPage() {
         {/* Actions */}
         <div className="flex gap-4">
           <Link
-            href={`/team6/exams/${exam_id}/edit`}
+            to={`/team6/exams/${examId}/edit`}
             className="flex-1 px-6 py-3 text-center border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
           >
             Засах
           </Link>
           <Link
-            href={`/team6/exams/${exam_id}/report`}
+            to={`/team6/exams/${examId}/report`}
             className="flex-1 px-6 py-3 text-center bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
           >
             Тайлан харах

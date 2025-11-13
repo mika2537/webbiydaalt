@@ -1,8 +1,6 @@
-"use client";
-
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
+import { Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { mockVariants } from "../../../data/mockData";
 
 interface Variant {
@@ -15,18 +13,18 @@ interface Variant {
 }
 
 export default function VariantListPage() {
-  const { exam_id } = useParams<{ exam_id: string }>();
+  const { examId } = useParams();
   const [variants, setVariants] = useState<Variant[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadVariants = () => {
-      const filtered = mockVariants.filter((v) => v.examId === Number(exam_id));
+      const filtered = mockVariants.filter((v) => v.examId === Number(examId));
       setVariants(filtered);
       setLoading(false);
     };
     loadVariants();
-  }, [exam_id]);
+  }, [examId]);
 
   if (loading) {
     return (
@@ -44,7 +42,7 @@ export default function VariantListPage() {
             Шалгалтын вариантын жагсаалт
           </h1>
           <Link
-            href={`/team6/exams/${exam_id}/variants/create`}
+            to={`/team6/exams/${examId}/variants/create`}
             className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition text-sm font-medium"
           >
             + Шинэ вариант
@@ -73,7 +71,7 @@ export default function VariantListPage() {
                     <td className="border p-2 text-center">{i + 1}</td>
                     <td className="border p-2 font-medium text-gray-900">
                       <Link
-                        href={`/team6/exams/${exam_id}/variants/${v.id}`}
+                        to={`/team6/exams/${examId}/variants/${v.id}`}
                         className="hover:underline"
                       >
                         {v.name}

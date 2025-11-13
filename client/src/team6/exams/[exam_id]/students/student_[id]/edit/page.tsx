@@ -1,18 +1,16 @@
-"use client";
-
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
+import { useParams, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { fetchData } from "../../../../../../utils/fetchData";
 
 const BASE_URL = "https://todu.mn/bs/lms/v1";
 
 export default function TakeExamPage() {
-  const { exam_id, student_id } = useParams<{
-    exam_id: string;
-    student_id: string;
+  const { examId, studentId } = useParams<{
+    examId: string;
+    studentId: string;
   }>();
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const [exam, setExam] = useState<any>(null);
   const [questions, setQuestions] = useState<any[]>([]);
@@ -27,8 +25,8 @@ export default function TakeExamPage() {
     const loadExamData = async () => {
       try {
         const [examData, questionData] = await Promise.all([
-          fetchData(`${BASE_URL}/exams/${exam_id}`, "GET"),
-          fetchData(`${BASE_URL}/exams/${exam_id}/questions`, "GET"),
+          fetchData(`${BASE_URL}/exams/${examId}`, "GET"),
+          fetchData(`${BASE_URL}/exams/${examId}/questions`, "GET"),
         ]);
 
         setExam(examData);
@@ -37,7 +35,7 @@ export default function TakeExamPage() {
 
         // Restore saved answers
         const saved = JSON.parse(
-          sessionStorage.getItem(`exam_${exam_id}_answers`) || "{}"
+          sessionStorage.getItem(`exam_${examId}_answers`) || "{}"
         );
         setAnswers(saved);
       } catch (error) {
@@ -48,13 +46,13 @@ export default function TakeExamPage() {
     };
 
     loadExamData();
-  }, [exam_id]);
+  }, [examId]);
 
   // Timer countdown
   useEffect(() => {
     if (!exam) return;
 
-    const startTimeKey = `exam_${exam_id}_start_time`;
+    const startTimeKey = `exam_${examId}_start_time`;
     let startTime = Number(sessionStorage.getItem(startTimeKey));
     if (!startTime) {
       startTime = Date.now();
@@ -87,7 +85,7 @@ export default function TakeExamPage() {
     setAnswers((prev) => {
       const updated = { ...prev, [q.id]: answer };
       sessionStorage.setItem(
-        `exam_${exam_id}_answers`,
+        `exam_${examId}_answers`,
         JSON.stringify(updated)
       );
       return updated;
@@ -104,7 +102,7 @@ export default function TakeExamPage() {
     setAnswers((prev) => {
       const updated = { ...prev, [q.id]: newAnswers };
       sessionStorage.setItem(
-        `exam_${exam_id}_answers`,
+        `exam_${examId}_answers`,
         JSON.stringify(updated)
       );
       return updated;
@@ -137,13 +135,13 @@ export default function TakeExamPage() {
       }
 
       await fetchData(
-        `${BASE_URL}/students/${student_id}/exams/${exam_id}/submit`,
+        `${BASE_URL}/students/${studentId}/exams/${examId}/submit`,
         "POST",
         { answers }
       );
 
-      sessionStorage.removeItem(`exam_${exam_id}_answers`);
-      router.push(`/team6/exams/${exam_id}/students/${student_id}/result`);
+      sessionStorage.removeItem(`exam_${examId}_answers`);
+      navigate(`/team6/exams/${examId}/students/${studentId}/result`);
     } catch (error) {
       console.error("❌ Failed to submit exam:", error);
       alert("Шалгалт илгээхэд алдаа гарлаа.");
@@ -163,7 +161,7 @@ export default function TakeExamPage() {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-600">
         ❌ Шалгалтын мэдээлэл олдсонгүй.
-        <Link href="/team6/student" className="mt-4 text-black underline">
+        <Link to="/team6/student" className="mt-4 text-black underline">
           Буцах
         </Link>
       </div>
@@ -179,7 +177,7 @@ export default function TakeExamPage() {
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <Link
-            href={`/team6/exams/${exam_id}/students/${student_id}/start`}
+            to={`/team6/exams/${examId}/students/${studentId}/start`}
             className="text-gray-600 hover:text-gray-900"
           >
             ← Буцах

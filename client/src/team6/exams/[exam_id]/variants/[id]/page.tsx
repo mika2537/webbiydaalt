@@ -1,8 +1,6 @@
-"use client";
-
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
+import { useParams, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { mockVariants, mockQuestionBank } from "../../../../data/mockData";
 
 interface Question {
@@ -22,11 +20,11 @@ interface Variant {
 }
 
 export default function VariantDetailPage() {
-  const { exam_id, variant_id } = useParams<{
-    exam_id: string;
-    variant_id: string;
+  const { examId, variantId } = useParams<{
+    examId: string;
+    variantId: string;
   }>();
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const [variant, setVariant] = useState<Variant | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -34,7 +32,7 @@ export default function VariantDetailPage() {
   useEffect(() => {
     const loadVariant = () => {
       const v = mockVariants.find(
-        (x) => x.id === Number(variant_id) && x.examId === Number(exam_id)
+        (x) => x.id === Number(variantId) && x.examId === Number(examId)
       );
       if (v) {
         setVariant(v);
@@ -45,7 +43,7 @@ export default function VariantDetailPage() {
       }
     };
     loadVariant();
-  }, [exam_id, variant_id]);
+  }, [examId, variantId]);
 
   if (!variant) {
     return (
@@ -59,7 +57,7 @@ export default function VariantDetailPage() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-sm border border-gray-200">
         <Link
-          href={`/team6/exams/${exam_id}/variants`}
+          to={`/team6/exams/${examId}/variants`}
           className="text-gray-600 hover:text-gray-900 inline-block mb-4"
         >
           ← Буцах
@@ -90,7 +88,7 @@ export default function VariantDetailPage() {
         )}
 
         <button
-          onClick={() => router.push(`/team6/exams/${exam_id}/variants`)}
+          onClick={() => navigate(`/team6/exams/${examId}/variants`)}
           className="mt-8 px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition"
         >
           Буцах

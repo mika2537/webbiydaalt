@@ -1,8 +1,6 @@
-"use client";
-
 import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
-import Link from "next/link";
+import { useNavigate, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { mockVariants } from "../../../../../data/mockData";
 
 interface Variant {
@@ -16,10 +14,10 @@ interface Variant {
 }
 
 export default function EditVariantPage() {
-  const router = useRouter();
-  const { exam_id, variant_id } = useParams<{
-    exam_id: string;
-    variant_id: string;
+  const navigate = useNavigate();
+  const { examId, variantId } = useParams<{
+    examId: string;
+    variantId: string;
   }>();
 
   const [variant, setVariant] = useState<Variant | null>(null);
@@ -33,7 +31,7 @@ export default function EditVariantPage() {
   // ✅ Load existing variant data
   useEffect(() => {
     const v = mockVariants.find(
-      (x) => x.id === Number(variant_id) && x.examId === Number(exam_id)
+      (x) => x.id === Number(variantId) && x.examId === Number(examId)
     );
     if (v) {
       setVariant(v);
@@ -43,7 +41,7 @@ export default function EditVariantPage() {
       });
     }
     setLoading(false);
-  }, [exam_id, variant_id]);
+  }, [examId, variantId]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -64,7 +62,7 @@ export default function EditVariantPage() {
 
     try {
       const index = mockVariants.findIndex(
-        (x) => x.id === Number(variant_id) && x.examId === Number(exam_id)
+        (x) => x.id === Number(variantId) && x.examId === Number(examId)
       );
       if (index !== -1) {
         mockVariants[index] = {
@@ -77,7 +75,7 @@ export default function EditVariantPage() {
 
       setMessage("Амжилттай шинэчлэгдлээ!");
       setTimeout(() => {
-        router.push(`/team6/exams/${exam_id}/variants/${variant_id}`);
+        navigate(`/team6/exams/${examId}/variants/${variantId}`);
       }, 1200);
     } catch (error) {
       console.error("❌ Вариант засахад алдаа:", error);
@@ -105,7 +103,7 @@ export default function EditVariantPage() {
     <div className="min-h-screen bg-gray-50 p-6 flex justify-center items-center">
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
         <Link
-          href={`/team6/exams/${exam_id}/variants/${variant_id}`}
+          to={`/team6/exams/${examId}/variants/${variantId}`}
           className="text-gray-600 hover:text-gray-900 inline-block mb-4"
         >
           ← Буцах
@@ -162,7 +160,7 @@ export default function EditVariantPage() {
 
         <button
           onClick={() =>
-            router.push(`/team6/exams/${exam_id}/variants/${variant_id}`)
+            navigate(`/team6/exams/${examId}/variants/${variantId}`)
           }
           className="mt-6 w-full py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition font-medium"
         >

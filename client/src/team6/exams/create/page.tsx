@@ -1,8 +1,6 @@
-"use client";
-
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { mockCourses, mockTopics, mockQuestionBank } from "../../data/mockData";
 
 // ✅ Types for stronger typing
@@ -40,7 +38,7 @@ interface FormData {
 }
 
 export default function CreateExamPage() {
-  const router = useRouter();
+  const navigate = useNavigate();
 
   // 🧩 For this mock version, we'll use course_id = 1
   const course_id = 1;
@@ -138,7 +136,7 @@ export default function CreateExamPage() {
     console.log("✅ Exam created (mock):", newExam);
     alert(`Шалгалт амжилттай үүсгэлээ! Нийт ${totalQuestions} асуулт.`);
 
-    router.push(`/team6/exams`);
+    navigate(`/team6/exams`);
   };
 
   // ✅ Loading state
@@ -157,7 +155,7 @@ export default function CreateExamPage() {
         {/* Header */}
         <div className="mb-8">
           <Link
-            href={`/team6/exams`}
+            to={`/team6/exams`}
             className="text-gray-600 hover:text-gray-900 mb-4 inline-block"
           >
             ← Буцах
@@ -259,7 +257,7 @@ export default function CreateExamPage() {
                 </p>
               </div>
               <Link
-                href="/team6/question-bank"
+                to="/team6/question-bank"
                 className="px-4 py-2 bg-gray-100 text-gray-900 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
               >
                 Банк харах →
@@ -358,7 +356,7 @@ export default function CreateExamPage() {
               Шалгалт үүсгэх
             </button>
             <Link
-              href={`/team6/exams`}
+              to={`/team6/exams`}
               className="flex-1 px-6 py-4 bg-white border-2 border-gray-200 text-gray-900 rounded-lg font-medium text-center hover:bg-gray-50 transition-colors"
             >
               Болих

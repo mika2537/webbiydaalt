@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import Link from "next/link";
+import { useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   mockExams,
   mockQuestionBank,
@@ -25,7 +25,7 @@ interface Question {
 }
 
 export default function CheckExamPage() {
-  const { exam_id, id } = useParams<{ exam_id: string; id: string }>();
+  const { examId, id } = useParams();
 
   const [exam, setExam] = useState<any>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -34,9 +34,9 @@ export default function CheckExamPage() {
 
   useEffect(() => {
     const loadMockData = () => {
-      const foundExam = mockExams.find((e) => e.id === Number(exam_id));
+      const foundExam = mockExams.find((e) => e.id === Number(examId));
       const foundStudentExam = mockStudentExams.find(
-        (s) => s.examId === Number(exam_id) && s.studentId === Number(id)
+        (s) => s.examId === Number(examId) && s.studentId === Number(id)
       );
 
       if (!foundExam || !foundStudentExam) {
@@ -59,7 +59,7 @@ export default function CheckExamPage() {
     };
 
     loadMockData();
-  }, [exam_id, id]);
+  }, [examId, id]);
 
   const getStudentAnswer = (questionId: number) => {
     return studentAnswers.find((a) => a.questionId === questionId)?.response;
@@ -103,7 +103,7 @@ export default function CheckExamPage() {
       <div className="min-h-screen flex flex-col items-center justify-center text-gray-600">
         ❌ Мэдээлэл олдсонгүй.
         <Link
-          href="/team6/student"
+          to="/team6/student"
           className="mt-4 text-black underline hover:text-gray-700"
         >
           Буцах
@@ -117,7 +117,7 @@ export default function CheckExamPage() {
         {/* Header */}
         <div className="mb-8">
           <Link
-            href={`/team6/exams/${exam_id}/students/student_${id}/result`}
+            to={`/team6/exams/${examId}/students/student_${id}/result`}
             className="text-gray-600 hover:text-gray-900 mb-4 inline-block"
           >
             ← Буцах
@@ -250,7 +250,7 @@ export default function CheckExamPage() {
         {/* Footer */}
         <div className="mt-8 flex justify-center">
           <Link
-            href={`/team6/exams/${exam_id}/students/student_${id}/result`}
+            to={`/team6/exams/${examId}/students/student_${id}/result`}
             className="px-6 py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition"
           >
             Үр дүн рүү буцах

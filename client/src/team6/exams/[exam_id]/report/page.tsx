@@ -1,7 +1,5 @@
-"use client";
-
-import { useParams } from "next/navigation";
-import Link from "next/link";
+import { useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   mockExams,
@@ -10,7 +8,7 @@ import {
 } from "../../../data/mockData";
 
 export default function ExamReportPage() {
-  const { exam_id } = useParams<{ exam_id: string }>();
+  const { examId } = useParams();
   const [exam, setExam] = useState<any>(null);
   const [stats, setStats] = useState<any>(null);
   const [studentResults, setStudentResults] = useState<any[]>([]);
@@ -19,10 +17,10 @@ export default function ExamReportPage() {
   useEffect(() => {
     // Load data from mockData.js
     const loadMockReport = () => {
-      const foundExam = mockExams.find((e) => String(e.id) === String(exam_id));
-      const foundStats = (mockExamStats as any)[exam_id];
+      const foundExam = mockExams.find((e) => String(e.id) === String(examId));
+      const foundStats = examId ? (mockExamStats as any)[examId] : null;
       const results = mockStudentExams.filter(
-        (r) => String(r.examId) === String(exam_id)
+        (r) => String(r.examId) === String(examId)
       );
 
       setExam(foundExam);
@@ -31,7 +29,7 @@ export default function ExamReportPage() {
       setLoading(false);
     };
     loadMockReport();
-  }, [exam_id]);
+  }, [examId]);
 
   const getStatusBadge = (status: string) => {
     const badges: any = {
@@ -71,7 +69,7 @@ export default function ExamReportPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Тайлан олдсонгүй
           </h2>
-          <Link href="/team6/exams" className="text-black hover:underline">
+          <Link to="/team6/exams" className="text-black hover:underline">
             Буцах
           </Link>
         </div>
@@ -85,7 +83,7 @@ export default function ExamReportPage() {
         {/* Header */}
         <div className="mb-8">
           <Link
-            href={`/team6/exams/${exam_id}`}
+            to={`/team6/exams/${examId}`}
             className="text-gray-600 hover:text-gray-900 mb-4 inline-block"
           >
             ← Буцах

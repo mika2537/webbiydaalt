@@ -1,8 +1,6 @@
-"use client";
-
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
+import { useParams, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { mockExams } from "../../../data/mockData";
 
 export interface Exam {
@@ -24,8 +22,8 @@ export interface Exam {
 }
 
 export default function EditExamPage() {
-  const { exam_id } = useParams<{ exam_id: string }>();
-  const router = useRouter();
+  const { examId } = useParams();
+  const navigate = useNavigate();
 
   const [exam, setExam] = useState<Exam | null>(null);
   const [formData, setFormData] = useState({
@@ -40,7 +38,7 @@ export default function EditExamPage() {
 
   // ✅ Load exam from mock data
   useEffect(() => {
-    const foundExam = mockExams.find((e) => e.id === Number(exam_id));
+    const foundExam = mockExams.find((e) => e.id === Number(examId));
     if (foundExam) {
       setExam(foundExam);
       setFormData({
@@ -52,7 +50,7 @@ export default function EditExamPage() {
       });
     }
     setLoading(false);
-  }, [exam_id]);
+  }, [examId]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -71,7 +69,7 @@ export default function EditExamPage() {
     }
 
     try {
-      const index = mockExams.findIndex((e) => e.id === Number(exam_id));
+      const index = mockExams.findIndex((e) => e.id === Number(examId));
       if (index !== -1) {
         mockExams[index] = {
           ...mockExams[index],
@@ -80,14 +78,14 @@ export default function EditExamPage() {
           startDate: formData.examDate,
           duration: Number(formData.duration),
           totalMarks: Number(formData.totalMarks),
-          updatedAt: new Date().toISOString(), // ✅ now allowed
+          // updatedAt: new Date().toISOString(),
         };
       }
 
       console.log("✅ Exam updated:", mockExams[index]);
       setMessage("Шалгалтын мэдээлэл амжилттай шинэчлэгдлээ!");
 
-      setTimeout(() => router.push(`/team6/exams/${exam_id}`), 1200);
+      setTimeout(() => navigate(`/team6/exams/${examId}`), 1200);
     } catch (error) {
       console.error("❌ Error updating exam:", error);
       setMessage("⚠️ Шалгалтын мэдээлэл шинэчлэхэд алдаа гарлаа!");
@@ -114,7 +112,7 @@ export default function EditExamPage() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-sm border border-gray-200">
         <Link
-          href={`/team6/exams/${exam_id}`}
+          to={`/team6/exams/${examId}`}
           className="text-gray-600 hover:text-gray-900 mb-4 inline-block"
         >
           ← Буцах
@@ -210,7 +208,7 @@ export default function EditExamPage() {
 
             <button
               type="button"
-              onClick={() => router.push(`/team6/exams/${exam_id}`)}
+              onClick={() => navigate(`/team6/exams/${examId}`)}
               className="flex-1 px-6 py-3 bg-white border-2 border-gray-200 text-gray-900 rounded-lg font-medium text-center hover:bg-gray-50 transition-colors"
             >
               Болих

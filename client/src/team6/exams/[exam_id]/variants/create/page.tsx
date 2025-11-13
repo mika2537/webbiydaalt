@@ -1,7 +1,5 @@
-"use client";
-
 import { useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useNavigate, useParams } from "react-router-dom";
 import { mockVariants } from "../../../../data/mockData";
 
 interface Variant {
@@ -15,8 +13,8 @@ interface Variant {
 }
 
 export default function CreateVariantPage() {
-  const router = useRouter();
-  const { exam_id } = useParams<{ exam_id: string }>();
+  const navigate = useNavigate();
+  const { examId } = useParams();
 
   const [form, setForm] = useState({
     name: "",
@@ -40,7 +38,7 @@ export default function CreateVariantPage() {
     try {
       const newVariant: Variant = {
         id: Math.floor(Math.random() * 10000),
-        examId: Number(exam_id),
+        examId: Number(examId),
         name: form.name.trim(),
         description: form.description.trim(),
         questionIds: [], // ✅ added required field
@@ -55,7 +53,7 @@ export default function CreateVariantPage() {
       setMessage("Амжилттай нэмэгдлээ!");
       setForm({ name: "", description: "" });
 
-      setTimeout(() => router.push(`/team6/exams/${exam_id}`), 1200);
+      setTimeout(() => navigate(`/team6/exams/${examId}`), 1200);
     } catch (error) {
       console.error("❌ Вариант үүсгэхэд алдаа:", error);
       setMessage("⚠️ Вариант үүсгэхэд алдаа гарлаа!");
@@ -124,7 +122,7 @@ export default function CreateVariantPage() {
         )}
 
         <button
-          onClick={() => router.push(`/team6/exams/${exam_id}`)}
+          onClick={() => navigate(`/team6/exams/${examId}`)}
           className="mt-6 w-full py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition font-medium"
         >
           Буцах
