@@ -67,37 +67,58 @@ const Index = () => {
       <Route path="student" element={<StudentHome onLogout={handleLogout} />} />
       <Route path="teacher" element={<TeacherHome onLogout={handleLogout} />} />
 
-      {/* ✅ Exam routes based on your folder structure */}
-      <Route path="exams" element={<ExamsPage />} />
-      <Route path="exams/create" element={<ExamCreatePage />} />
+      {/* 6.10 Шалгалтын хуудсууд (Exam Pages) */}
+      {/* 1. Course-based exam list */}
+      <Route path="courses/:courseId/exams" element={<ExamsPage />} />
+      {/* 2. Course-based exam creation */}
+      <Route
+        path="courses/:courseId/exams/create"
+        element={<ExamCreatePage />}
+      />
+
+      {/* 3. Exam detail - /exams/:exam_id */}
       <Route path="exams/:examId" element={<ExamDetailPage />} />
+      {/* 4. Exam edit - /exams/:exam_id/edit */}
       <Route path="exams/:examId/edit" element={<ExamEditPage />} />
+      {/* 5. Exam report/statistics - /exams/:exam_id/report */}
       <Route path="exams/:examId/report" element={<ExamReportPage />} />
+
+      {/* 6.11 Шалгалтын вариантын хуудсууд (Exam Variant Pages) */}
+      {/* 1. Variant list - /exams/:exam_id/variants */}
       <Route path="exams/:examId/variants" element={<ExamVariantsPage />} />
+      {/* 2. Variant creation - /exams/:exam_id/variants/create */}
       <Route
         path="exams/:examId/variants/create"
         element={<VariantCreatePage />}
       />
+      {/* 3. Variant detail - /exams/:exam_id/variants/:id */}
       <Route
-        path="exams/:examId/variants/:variantId"
+        path="exams/:examId/variants/:id"
         element={<VariantDetailPage />}
       />
+      {/* 4. Variant edit - /exams/:exam_id/variants/:id/edit */}
       <Route
-        path="exams/:examId/variants/:variantId/edit"
+        path="exams/:examId/variants/:id/edit"
         element={<VariantEditPage />}
       />
+
+      {/* 6.12 Шалгалт авах хуудсууд (Take Exam Pages) */}
+      {/* 1. Start exam - /exams/:exam_id/students/:student_id */}
       <Route
         path="exams/:examId/students/:studentId"
         element={<StudentDetailPage />}
       />
+      {/* 2. Take exam - /exams/:exam_id/students/:student_id/edit */}
       <Route
         path="exams/:examId/students/:studentId/edit"
         element={<StudentEditPage />}
       />
+      {/* 3. Check correct answers - /exams/:exam_id/students/:student_id/check */}
       <Route
         path="exams/:examId/students/:studentId/check"
         element={<StudentCheckPage />}
       />
+      {/* 4. Exam results - /exams/:exam_id/students/:student_id/result */}
       <Route
         path="exams/:examId/students/:studentId/result"
         element={<StudentResultPage />}
