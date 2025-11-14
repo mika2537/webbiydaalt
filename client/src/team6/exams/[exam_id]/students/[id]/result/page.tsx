@@ -36,7 +36,7 @@ interface Question {
 }
 
 export default function CheckExamPage() {
-  const { exam_id, id } = useParams<{ exam_id: string; id: string }>();
+  const { examId, studentId } = useParams();
 
   const [exam, setExam] = useState<any>(null);
   const [studentExam, setStudentExam] = useState<StudentExam | null>(null);
@@ -45,66 +45,76 @@ export default function CheckExamPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // ✅ Load and process data safely
     const loadExamData = () => {
-      const foundExam = mockExams.find((e) => e.id === Number(exam_id));
+      const foundExam = mockExams.find((e) => e.id === Number(examId));
       const foundStudentExam = mockStudentExams.find(
-        (s) => s.examId === Number(exam_id) && s.studentId === Number(id)
+        (s) => s.examId === Number(examId) && s.studentId === Number(studentId)
       );
 
       if (!foundExam) {
-        console.warn("Exam not found:", exam_id);
         setLoading(false);
         return;
       }
 
       setExam(foundExam);
 
-      // ✅ Ensure answers array always has correct type
-      const safeExam: StudentExam = foundStudentExam
-        ? {
-            ...foundStudentExam,
-            answers: (foundStudentExam.answers as StudentAnswer[]) ?? [],
-          }
-        : { answers: [] as StudentAnswer[] };
+      // ⬇️ LOCAL STORAGE-оос хариултуудыг унших
+      const localAnswers = JSON.parse(
+        sessionStorage.getItem(`exam_${examId}_answers`) || "{}"
+      );
+
+      // ⬇️ LocalStorage → StudentExam.answers болгон хөрвүүлэх
+      const parsedAnswers = Object.entries(localAnswers).map(
+        ([questionId, resp]) => ({
+          questionId: Number(questionId),
+          response: Array.isArray(resp) ? resp : [resp],
+        })
+      );
+
+      // ⬇️ StudentExam merge хийж хадгална
+      const safeExam: StudentExam = {
+        ...(foundStudentExam || {}),
+        answers: parsedAnswers,
+      };
 
       setStudentExam(safeExam);
 
-      // ✅ Get questions by topic
+      // ⬇️ Асуултуудыг дээр нь авна
       const topicIds =
         foundExam.selectedTopics?.map((t: any) => t.topicId) || [];
+
       const examQuestions = mockQuestionBank.filter((q) =>
         topicIds.includes(q.topicId)
       );
+
       setQuestions(examQuestions);
 
-      // ✅ Calculate score right here (use safeExam)
-      if (safeExam && examQuestions.length > 0) {
-        const correctCount = examQuestions.reduce((sum, q) => {
-          const studentAnswer = safeExam.answers.find(
-            (a) => a.questionId === q.id
-          )?.response;
+      // ⬇️ Оноо бодолт
+      let correctCount = 0;
 
-          const isCorrect =
-            studentAnswer &&
-            q.correctAnswers.length === studentAnswer.length &&
-            q.correctAnswers.every((ans) => studentAnswer.includes(ans));
+      examQuestions.forEach((q) => {
+        const studentAnswer = safeExam.answers.find(
+          (a) => a.questionId === q.id
+        )?.response;
 
-          return isCorrect ? sum + 1 : sum;
-        }, 0);
+        if (
+          studentAnswer &&
+          q.correctAnswers.length === studentAnswer.length &&
+          q.correctAnswers.every((v) => studentAnswer.includes(v))
+        ) {
+          correctCount++;
+        }
+      });
 
-        setScore(
-          Math.round(
-            (correctCount / examQuestions.length) * foundExam.totalMarks
-          )
-        );
-      }
+      setScore(
+        Math.round((correctCount / examQuestions.length) * foundExam.totalMarks)
+      );
 
       setLoading(false);
     };
 
     loadExamData();
-  }, [exam_id, id]);
+  }, [examId, studentId]);
 
   if (loading)
     return (
@@ -239,7 +249,7 @@ export default function CheckExamPage() {
         {/* Footer */}
         <div className="mt-10 flex justify-center">
           <Link
-            to="/team6/student"
+            to="/team6"
             className="px-6 py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition"
           >
             Буцах

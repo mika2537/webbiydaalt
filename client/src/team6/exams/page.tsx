@@ -87,7 +87,7 @@ export default function ExamListPage() {
               </p>
             </div>
             <Link
-              to={`/team6/exams/create`}
+              to={`/team6/courses/:courseId/exams/create`}
               className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors font-medium"
             >
               + Шинэ шалгалт нэмэх
@@ -106,7 +106,7 @@ export default function ExamListPage() {
               Энэ хичээлд одоогоор шалгалт нэмэгдээгүй байна.
             </p>
             <Link
-              to={`/team6/exams/create`}
+              to={`/team6/courses/:courseId/exams/create`}
               className="inline-block bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors"
             >
               Шалгалт нэмэх
