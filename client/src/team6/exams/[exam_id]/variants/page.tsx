@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { mockVariants } from "../../../data/mockData";
+import BackButton from "../../../components/BackButton";
 
 interface Variant {
   id: number;
@@ -37,6 +38,7 @@ export default function VariantListPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-5xl mx-auto bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <BackButton variant="link" className="mb-4" />
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-900">
             Шалгалтын вариантын жагсаалт
@@ -61,7 +63,7 @@ export default function VariantListPage() {
                   <th className="border p-2">#</th>
                   <th className="border p-2 text-left">Нэр</th>
                   <th className="border p-2 text-left">Тайлбар</th>
-                  <th className="border p-2">Асуултын тоо</th>
+                  <th className="border p-2">Асуултын тоо</th> 
                   <th className="border p-2">Үүсгэсэн</th>
                 </tr>
               </thead>

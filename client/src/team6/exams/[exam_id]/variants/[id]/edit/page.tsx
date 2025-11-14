@@ -15,10 +15,8 @@ interface Variant {
 
 export default function EditVariantPage() {
   const navigate = useNavigate();
-  const { examId, variantId } = useParams<{
-    examId: string;
-    variantId: string;
-  }>();
+  const { examId, id } = useParams();
+  const variantId = id;
 
   const [variant, setVariant] = useState<Variant | null>(null);
   const [form, setForm] = useState({

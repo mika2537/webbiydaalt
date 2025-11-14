@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { mockExams, mockVariants, mockExamStats } from "../../data/mockData";
+import BackButton from "../../components/BackButton";
 
 export default function ExamDetailPage() {
   const { examId } = useParams();
@@ -89,12 +90,7 @@ export default function ExamDetailPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <Link
-            to="/team6/exams"
-            className="text-gray-600 hover:text-gray-900 mb-4 inline-block"
-          >
-            ← Буцах
-          </Link>
+          <BackButton variant="link" className="mb-4" />
           <div className="flex items-start justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">

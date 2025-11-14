@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { mockVariants, mockQuestionBank } from "../../../../data/mockData";
+import BackButton from "../../../../components/BackButton";
 
 interface Question {
   id: number;
@@ -20,11 +21,9 @@ interface Variant {
 }
 
 export default function VariantDetailPage() {
-  const { examId, variantId } = useParams<{
-    examId: string;
-    variantId: string;
-  }>();
+  const { examId, id } = useParams();
   const navigate = useNavigate();
+  const variantId = id;
 
   const [variant, setVariant] = useState<Variant | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -56,12 +55,7 @@ export default function VariantDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-sm border border-gray-200">
-        <Link
-          to={`/team6/exams/${examId}/variants`}
-          className="text-gray-600 hover:text-gray-900 inline-block mb-4"
-        >
-          ← Буцах
-        </Link>
+        <BackButton variant="link" className="mb-4" />
 
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
           {variant.name}
@@ -87,12 +81,7 @@ export default function VariantDetailPage() {
           <p className="text-gray-500">Асуулт олдсонгүй.</p>
         )}
 
-        <button
-          onClick={() => navigate(`/team6/exams/${examId}/variants`)}
-          className="mt-8 px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition"
-        >
-          Буцах
-        </button>
+        <BackButton className="mt-8" />
       </div>
     </div>
   );

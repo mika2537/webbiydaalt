@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { mockCourses, mockTopics, mockQuestionBank } from "../../data/mockData";
+import BackButton from "../../components/BackButton";
 
 // ✅ Types for stronger typing
 interface Course {
@@ -154,12 +154,7 @@ export default function CreateExamPage() {
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            to={`/team6/exams`}
-            className="text-gray-600 hover:text-gray-900 mb-4 inline-block"
-          >
-            ← Буцах
-          </Link>
+          <BackButton variant="link" className="mb-4" />
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Шинэ шалгалт үүсгэх
           </h1>

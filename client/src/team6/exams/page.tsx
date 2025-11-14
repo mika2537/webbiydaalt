@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { mockCourses, mockExams } from "../data/mockData";
+import BackButton from "../components/BackButton";
 
 export default function ExamListPage() {
   const [course, setCourse] = useState<any>(null);
@@ -71,12 +72,7 @@ export default function ExamListPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            to="/team6"
-            className="text-gray-600 hover:text-gray-900 mb-4 inline-block"
-          >
-            ← Dashboard руу буцах
-          </Link>
+          <BackButton variant="link" className="mb-4" />
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">

@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { mockVariants } from "../../../../data/mockData";
+import BackButton from "../../../../components/BackButton";
 
 interface Variant {
   id: number;
   examId: number;
   name: string;
   description: string;
-  questionIds: number[]; // ✅ required
+  questionIds: number[];
   totalQuestions: number;
   createdAt: string;
 }
@@ -121,12 +122,7 @@ export default function CreateVariantPage() {
           </p>
         )}
 
-        <button
-          onClick={() => navigate(`/team6/exams/${examId}`)}
-          className="mt-6 w-full py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition font-medium"
-        >
-          Буцах
-        </button>
+        <BackButton className="mt-6 w-full" />
       </div>
     </div>
   );

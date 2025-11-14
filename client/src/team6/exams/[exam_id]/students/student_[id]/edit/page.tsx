@@ -6,10 +6,7 @@ import { fetchData } from "../../../../../../utils/fetchData";
 const BASE_URL = "https://todu.mn/bs/lms/v1";
 
 export default function TakeExamPage() {
-  const { examId, studentId } = useParams<{
-    examId: string;
-    studentId: string;
-  }>();
+  const { examId, studentId } = useParams();
   const navigate = useNavigate();
 
   const [exam, setExam] = useState<any>(null);
@@ -84,10 +81,7 @@ export default function TakeExamPage() {
     const q = questions[currentQuestion];
     setAnswers((prev) => {
       const updated = { ...prev, [q.id]: answer };
-      sessionStorage.setItem(
-        `exam_${examId}_answers`,
-        JSON.stringify(updated)
-      );
+      sessionStorage.setItem(`exam_${examId}_answers`, JSON.stringify(updated));
       return updated;
     });
   };
@@ -101,10 +95,7 @@ export default function TakeExamPage() {
 
     setAnswers((prev) => {
       const updated = { ...prev, [q.id]: newAnswers };
-      sessionStorage.setItem(
-        `exam_${examId}_answers`,
-        JSON.stringify(updated)
-      );
+      sessionStorage.setItem(`exam_${examId}_answers`, JSON.stringify(updated));
       return updated;
     });
   };

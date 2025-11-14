@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
@@ -38,7 +36,7 @@ interface Question {
 }
 
 export default function CheckExamPage() {
-  const { examId, id } = useParams();
+  const { exam_id, id } = useParams<{ exam_id: string; id: string }>();
 
   const [exam, setExam] = useState<any>(null);
   const [studentExam, setStudentExam] = useState<StudentExam | null>(null);
@@ -49,13 +47,13 @@ export default function CheckExamPage() {
   useEffect(() => {
     // ✅ Load and process data safely
     const loadExamData = () => {
-      const foundExam = mockExams.find((e) => e.id === Number(examId));
+      const foundExam = mockExams.find((e) => e.id === Number(exam_id));
       const foundStudentExam = mockStudentExams.find(
-        (s) => s.examId === Number(examId) && s.studentId === Number(id)
+        (s) => s.examId === Number(exam_id) && s.studentId === Number(id)
       );
 
       if (!foundExam) {
-        console.warn("Exam not found:", examId);
+        console.warn("Exam not found:", exam_id);
         setLoading(false);
         return;
       }
@@ -106,7 +104,7 @@ export default function CheckExamPage() {
     };
 
     loadExamData();
-  }, [examId, id]);
+  }, [exam_id, id]);
 
   if (loading)
     return (

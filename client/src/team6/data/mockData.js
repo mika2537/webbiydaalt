@@ -116,6 +116,7 @@ export const mockExams = [
   {
     id: 1,
     courseId: 1,
+    variantId: 1,
     title: "Үйлдлийн систем шалгалт",
     description: "RAM, ROM, CPU, санах ойн хаяглалт",
     startDate: "2025-02-15T09:00:00",
@@ -170,8 +171,8 @@ const makeVariant = (examId, name) => {
 
 export const mockVariants = [
   makeVariant(1, "Вариант A"),
-  makeVariant(1, "Вариант B"),
-  makeVariant(1, "Вариант C"),
+  makeVariant(2, "Вариант B"),
+  makeVariant(3, "Вариант C"),
 ];
 
 // =====================================

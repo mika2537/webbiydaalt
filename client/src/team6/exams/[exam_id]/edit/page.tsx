@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { mockExams } from "../../../data/mockData";
+import BackButton from "../../../components/BackButton";
 
 export interface Exam {
   id: number;
@@ -111,12 +112,7 @@ export default function EditExamPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-sm border border-gray-200">
-        <Link
-          to={`/team6/exams/${examId}`}
-          className="text-gray-600 hover:text-gray-900 mb-4 inline-block"
-        >
-          ← Буцах
-        </Link>
+        <BackButton variant="link" className="mb-4" />
 
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Шалгалт засах</h1>
 

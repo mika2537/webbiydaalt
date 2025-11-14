@@ -6,6 +6,7 @@ import {
   mockQuestionBank,
   mockStudentExams,
 } from "../../../../data/mockData";
+import BackButton from "../../../../components/BackButton";
 
 interface StudentAnswer {
   questionId: number;
@@ -131,12 +132,7 @@ export default function CheckExamPage() {
             </h1>
             <p className="text-gray-600">{exam.description}</p>
           </div>
-          <Link
-            to={`/team6/student`}
-            className="text-gray-600 hover:text-gray-900"
-          >
-            ← Буцах
-          </Link>
+          <BackButton variant="link" />
         </div>
 
         {/* Summary */}

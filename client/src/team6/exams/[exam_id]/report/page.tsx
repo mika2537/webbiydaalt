@@ -6,6 +6,7 @@ import {
   mockExamStats,
   mockStudentExams,
 } from "../../../data/mockData";
+import BackButton from "../../../components/BackButton";
 
 export default function ExamReportPage() {
   const { examId } = useParams();
@@ -82,12 +83,7 @@ export default function ExamReportPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            to={`/team6/exams/${examId}`}
-            className="text-gray-600 hover:text-gray-900 mb-4 inline-block"
-          >
-            ← Буцах
-          </Link>
+          <BackButton variant="link" className="mb-4" />
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Шалгалтын тайлан
           </h1>
