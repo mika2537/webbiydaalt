@@ -58,12 +58,10 @@ export default function CheckExamPage() {
 
       setExam(foundExam);
 
-      // ⬇️ LOCAL STORAGE-оос хариултуудыг унших
       const localAnswers = JSON.parse(
         sessionStorage.getItem(`exam_${examId}_answers`) || "{}"
       );
 
-      // ⬇️ LocalStorage → StudentExam.answers болгон хөрвүүлэх
       const parsedAnswers = Object.entries(localAnswers).map(
         ([questionId, resp]) => ({
           questionId: Number(questionId),
@@ -71,7 +69,6 @@ export default function CheckExamPage() {
         })
       );
 
-      // ⬇️ StudentExam merge хийж хадгална
       const safeExam: StudentExam = {
         ...(foundStudentExam || {}),
         answers: parsedAnswers,
@@ -79,7 +76,6 @@ export default function CheckExamPage() {
 
       setStudentExam(safeExam);
 
-      // ⬇️ Асуултуудыг дээр нь авна
       const topicIds =
         foundExam.selectedTopics?.map((t: any) => t.topicId) || [];
 
@@ -89,7 +85,6 @@ export default function CheckExamPage() {
 
       setQuestions(examQuestions);
 
-      // ⬇️ Оноо бодолт
       let correctCount = 0;
 
       examQuestions.forEach((q) => {

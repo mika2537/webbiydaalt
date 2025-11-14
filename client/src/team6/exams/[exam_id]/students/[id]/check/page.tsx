@@ -31,9 +31,6 @@ export default function CheckExamPage() {
   const [studentAnswers, setStudentAnswers] = useState<StudentAnswer[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // -------------------------
-  // LOAD DATA
-  // -------------------------
   useEffect(() => {
     const loadData = () => {
       const foundExam = mockExams.find((e) => e.id === Number(examId));
@@ -41,7 +38,6 @@ export default function CheckExamPage() {
 
       setExam(foundExam);
 
-      // 1) GET VARIANT (must match TakeExamPage)
       const variant = mockVariants.find(
         (v) => String(v.examId) === String(examId)
       );
@@ -54,7 +50,6 @@ export default function CheckExamPage() {
 
       setQuestions(examQuestions);
 
-      // 2) LOAD STUDENT ANSWERS FROM SESSION STORAGE
       const fromLocal = JSON.parse(
         sessionStorage.getItem(`exam_${examId}_answers`) || "{}"
       );
@@ -100,9 +95,6 @@ export default function CheckExamPage() {
     return false;
   };
 
-  // -------------------------
-  // UI LOADING / EMPTY
-  // -------------------------
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -120,9 +112,6 @@ export default function CheckExamPage() {
       </div>
     );
 
-  // -------------------------
-  // RENDER PAGE
-  // -------------------------
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow">

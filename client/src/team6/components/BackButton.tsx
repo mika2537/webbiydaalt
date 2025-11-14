@@ -7,12 +7,6 @@ interface BackButtonProps {
   variant?: "link" | "button";
 }
 
-/**
- * Reusable back button component with smart navigation
- * - Uses browser history by default (navigate(-1))
- * - Falls back to specified path if provided
- * - Supports both link and button styles
- */
 export default function BackButton({
   to,
   label = "Буцах",
@@ -22,8 +16,6 @@ export default function BackButton({
   const navigate = useNavigate();
 
   const handleBack = () => {
-    // Always use browser history to go to previous page
-    // This ensures user goes back exactly where they came from
     navigate(-1);
   };
 

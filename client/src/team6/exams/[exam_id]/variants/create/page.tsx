@@ -42,15 +42,14 @@ export default function CreateVariantPage() {
         examId: Number(examId),
         name: form.name.trim(),
         description: form.description.trim(),
-        questionIds: [], // ✅ added required field
+        questionIds: [],
         totalQuestions: 0,
         createdAt: new Date().toISOString(),
       };
 
-      // ✅ Push to mockVariants for mock mode
       mockVariants.push(newVariant);
 
-      console.log("✅ New Variant Created (mock):", newVariant);
+      console.log("Амжилттай нэмэгдлээ!", newVariant);
       setMessage("Амжилттай нэмэгдлээ!");
       setForm({ name: "", description: "" });
 
@@ -122,7 +121,7 @@ export default function CreateVariantPage() {
           </p>
         )}
 
-        <BackButton className="mt-6 w-full" />
+        <BackButton className="mt-6 w-full" to={`/team6/exams/`} />
       </div>
     </div>
   );

@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { mockCourses, mockExams } from "../data/mockData";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  mockCourses,
+  mockExams,
+  mockVariants,
+  mockExamStats,
+} from "../data/mockData";
 import BackButton from "../components/BackButton";
 
 export default function ExamListPage() {
+  const navigate = useNavigate();
   const [course, setCourse] = useState<any>(null);
   const [exams, setExams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -11,16 +17,45 @@ export default function ExamListPage() {
   // You can manually set course_id (static mode)
   const course_id = 1; // Example course: Компьютерын архитектур
 
+  const handleExamClick = (exam: any) => {
+    const examVariants = mockVariants.filter(
+      (v) => String(v.examId) === String(exam.id)
+    );
+    const examStats = (mockExamStats as any)[exam.id] || null;
+
+    localStorage.setItem("selectedExam", JSON.stringify(exam));
+    localStorage.setItem("selectedExamVariants", JSON.stringify(examVariants));
+    localStorage.setItem("selectedExamStats", JSON.stringify(examStats));
+
+    // Шалгалтын дэлгэрэнгүй хуудас руу шилжих
+    navigate(`/team6/exams/${exam.id}`);
+  };
+
   useEffect(() => {
     const loadData = () => {
       const courseData = mockCourses.find(
         (c) => String(c.id) === String(course_id)
       );
-      const examData = mockExams.filter(
+
+      // Mock data-аас шалгалтууд
+      const mockExamData = mockExams.filter(
         (e) => String(e.courseId) === String(course_id)
       );
+
+      // localStorage-аас үүсгэсэн шалгалтууд
+      const createdExams = JSON.parse(
+        localStorage.getItem("createdExams") || "[]"
+      );
+
+      console.log("📦 Шалгалтууд ачааллаж байна:");
+      console.log("  Mock exams:", mockExamData.length);
+      console.log("  Created exams (localStorage):", createdExams.length);
+
+      // Хоёуланг нэгтгэх (localStorage-ийнхийг эхэнд нь)
+      const allExams = [...createdExams, ...mockExamData];
+
       setCourse(courseData);
-      setExams(examData);
+      setExams(allExams);
       setLoading(false);
     };
     loadData();
@@ -126,6 +161,11 @@ export default function ExamListPage() {
                         <h3 className="text-xl font-bold text-gray-900">
                           {exam.title || "Нэргүй шалгалт"}
                         </h3>
+                        {exam.id > 1000000 && (
+                          <span className="px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full">
+                            ✨ Шинэ
+                          </span>
+                        )}
                         {getStatusBadge(exam.status)}
                       </div>
                       <p className="text-gray-600">
@@ -168,12 +208,12 @@ export default function ExamListPage() {
                       >
                         Засах
                       </Link>
-                      <Link
-                        to={`/team6/exams/${exam.id}`}
+                      <button
+                        onClick={() => handleExamClick(exam)}
                         className="px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800"
                       >
                         Дэлгэрэнгүй
-                      </Link>
+                      </button>
                     </div>
                   </div>
                 </div>

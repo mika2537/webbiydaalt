@@ -68,7 +68,6 @@ export default function EditVariantPage() {
           name: form.name.trim(),
           description: form.description.trim(),
         };
-        console.log("✅ Variant updated:", mockVariants[index]);
       }
 
       setMessage("Амжилттай шинэчлэгдлээ!");

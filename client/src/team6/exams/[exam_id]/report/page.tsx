@@ -231,8 +231,6 @@ export default function ExamReportPage() {
   );
 }
 
-// ✅ Small reusable components
-
 const StatCard = ({
   value,
   label,

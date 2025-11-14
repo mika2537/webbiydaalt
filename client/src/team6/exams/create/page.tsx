@@ -30,9 +30,11 @@ interface Question {
 interface FormData {
   title: string;
   description: string;
-  startDateTime: string;
-  endDateTime: string;
-  remainingTime: number;
+  startDate: string;
+  startTime: string;
+  endDate: string;
+  endTime: string;
+  duration: number;
   totalMarks: number;
   passingMarks: number;
 }
@@ -49,9 +51,11 @@ export default function CreateExamPage() {
   const [formData, setFormData] = useState<FormData>({
     title: "",
     description: "",
-    startDateTime: "",
-    endDateTime: "",
-    remainingTime: 0,
+    startDate: "",
+    startTime: "",
+    endDate: "",
+    endTime: "",
+    duration: 120,
     totalMarks: 100,
     passingMarks: 50,
   });
@@ -99,7 +103,11 @@ export default function CreateExamPage() {
       questionCount: count,
     })
   );
-
+  const saveExamToLocal = (exam: any) => {
+    const existing = JSON.parse(localStorage.getItem("createdExams") || "[]");
+    existing.push(exam);
+    localStorage.setItem("createdExams", JSON.stringify(existing));
+  };
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -114,17 +122,26 @@ export default function CreateExamPage() {
     }
 
     const newExam = {
+      id: Date.now(), // Unique ID
       ...formData,
       courseId: course_id,
       selectedTopics: selectedTopicsList,
       totalQuestions,
+      status: "upcoming",
+      createdBy: "Багш",
       createdAt: new Date().toISOString(),
+      startDate: `${formData.startDate}T${formData.startTime}:00`,
+      endDate: `${formData.endDate}T${formData.endTime}:00`,
+      duration: formData.duration, // Шалгалт өгөх хугацаа (минут)
     };
 
-    console.log("EXAM CREATED:", newExam);
-    alert("Шалгалт үүсгэлээ.");
+    // localStorage-д хадгалах
+    saveExamToLocal(newExam);
 
-    navigate("/team6/exams");
+    console.log("✅ Шалгалт үүсгэж localStorage-д хадгаллаа:", newExam);
+    alert("Шалгалт амжилттай үүсгэлээ!");
+
+    navigate("/team6/courses/1/exams");
   };
 
   if (loading) {
@@ -165,36 +182,57 @@ export default function CreateExamPage() {
                 onChange={handleChange}
               />
 
-              {/* MANUAL TIME FIELDS */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* DATE AND TIME FIELDS */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InputField
+                  label="Эхлэх огноо *"
+                  type="date"
+                  name="startDate"
+                  value={formData.startDate}
+                  onChange={handleChange}
+                  required
+                />
+
                 <InputField
                   label="Эхлэх цаг *"
-                  type="datetime-local"
-                  name="startDateTime"
-                  value={formData.startDateTime}
+                  type="time"
+                  name="startTime"
+                  value={formData.startTime}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InputField
+                  label="Дуусах огноо * (Оролцох боломжгүй болох)"
+                  type="date"
+                  name="endDate"
+                  value={formData.endDate}
                   onChange={handleChange}
                   required
                 />
 
                 <InputField
                   label="Дуусах цаг *"
-                  type="datetime-local"
-                  name="endDateTime"
-                  value={formData.endDateTime}
-                  onChange={handleChange}
-                  required
-                />
-
-                <InputField
-                  label="Үлдсэн хугацаа (минут) *"
-                  type="number"
-                  min={1}
-                  name="remainingTime"
-                  value={formData.remainingTime}
+                  type="time"
+                  name="endTime"
+                  value={formData.endTime}
                   onChange={handleChange}
                   required
                 />
               </div>
+
+              <InputField
+                label="Шалгалт өгөх хугацаа (минут) *"
+                type="number"
+                min={1}
+                name="duration"
+                value={formData.duration}
+                onChange={handleChange}
+                required
+                placeholder="Оюутан шалгалтыг хэдэн минутанд бөглөх"
+              />
 
               <InputField
                 label="Нийт оноо *"

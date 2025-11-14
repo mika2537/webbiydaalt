@@ -2,7 +2,6 @@ import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { mockExams, mockVariants, mockExamStats } from "../../data/mockData";
-import BackButton from "../../components/BackButton";
 
 export default function ExamDetailPage() {
   const { examId } = useParams();
@@ -10,21 +9,51 @@ export default function ExamDetailPage() {
   const [variants, setVariants] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [dataSource, setDataSource] = useState<"localStorage" | "mockData">(
+    "mockData"
+  );
+
+  const loadExamFromLocal = () => {
+    return JSON.parse(localStorage.getItem("selectedExam") || "null");
+  };
+
+  const loadVariantsFromLocal = () => {
+    return JSON.parse(localStorage.getItem("selectedExamVariants") || "[]");
+  };
+
+  const loadStatsFromLocal = () => {
+    return JSON.parse(localStorage.getItem("selectedExamStats") || "null");
+  };
 
   useEffect(() => {
-    const loadMockData = () => {
+    const loadData = () => {
+      // 1) LOCAL DATA
+      const localExam = loadExamFromLocal();
+      const localVariants = loadVariantsFromLocal();
+      const localStats = loadStatsFromLocal();
+
+      if (localExam && String(localExam.id) === String(examId)) {
+        setExam(localExam);
+        setVariants(localVariants || []);
+        setStats(localStats || null);
+        setDataSource("localStorage");
+        setLoading(false);
+        return;
+      }
       const foundExam = mockExams.find((e) => String(e.id) === String(examId));
       const foundVariants = mockVariants.filter(
         (v) => String(v.examId) === String(examId)
       );
       const foundStats = examId ? (mockExamStats as any)[examId] : null;
 
-      setExam(foundExam);
+      setExam(foundExam || null);
       setVariants(foundVariants);
       setStats(foundStats);
+      setDataSource("mockData");
       setLoading(false);
     };
-    loadMockData();
+
+    loadData();
   }, [examId]);
 
   const getStatusBadge = (status: string) => {
@@ -90,7 +119,12 @@ export default function ExamDetailPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <BackButton variant="link" className="mb-4" />
+          <Link
+            to="/team6/exams"
+            className="text-gray-600 hover:text-gray-900 mb-4 inline-block"
+          >
+            ← Буцах
+          </Link>
           <div className="flex items-start justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -100,7 +134,20 @@ export default function ExamDetailPage() {
                 {exam.description || "Тайлбар байхгүй"}
               </p>
             </div>
-            {getStatusBadge(exam.status)}
+            <div className="flex gap-2 items-center">
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  dataSource === "localStorage"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-gray-100 text-gray-700"
+                }`}
+              >
+                {dataSource === "localStorage"
+                  ? "💾 localStorage"
+                  : "📦 Mock Data"}
+              </span>
+              {getStatusBadge(exam.status)}
+            </div>
           </div>
         </div>
 
