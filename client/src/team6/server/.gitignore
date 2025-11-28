@@ -1,0 +1,47 @@
+# Node modules
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+build/
+.out/
+.next/
+.vercel/
+tmp/
+temp/
+
+# macOS system files
+.DS_Store
+
+# VSCode settings
+.vscode/
+
+# Local server files
+*.pid
+*.seed
+*.pid.lock
+
+# Cache
+.cache/
+.cache-loader/
+.parcel-cache/
+
+# TypeScript
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm/
+
+# Optional eslint cache
+.eslintcache
