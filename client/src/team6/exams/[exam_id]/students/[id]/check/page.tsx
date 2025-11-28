@@ -2,15 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import {
-  mockExams,
-  mockVariants,
-  mockQuestionBank,
-} from "../../../../../data/mockData";
 
 interface StudentAnswer {
   questionId: number;
-  response: string[] | string;
+  response: string[]; // always array for consistency
 }
 
 interface Question {
@@ -26,75 +21,92 @@ interface Question {
 export default function CheckExamPage() {
   const { examId, studentId } = useParams();
 
+  const API_URL = "http://localhost:3001";
+
   const [exam, setExam] = useState<any>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [studentAnswers, setStudentAnswers] = useState<StudentAnswer[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // ---------------------------------------------------
+  // 🔥 Load exam + variant + questions + student answers
+  // ---------------------------------------------------
   useEffect(() => {
-    const loadData = () => {
-      const foundExam = mockExams.find((e) => e.id === Number(examId));
-      if (!foundExam) return setLoading(false);
+    async function load() {
+      try {
+        // 1. Load exam info
+        const examRes = await fetch(`${API_URL}/exams/${examId}`);
+        const examData = await examRes.json();
+        setExam(examData);
 
-      setExam(foundExam);
+        // 2. Load student variant
+        const variantRes = await fetch(
+          `${API_URL}/variants/${examId}/student/${studentId}`
+        );
+        const variantData = await variantRes.json();
 
-      const variant = mockVariants.find(
-        (v) => String(v.examId) === String(examId)
-      );
+        // 3. Load questions for this variant
+        const questionRes = await fetch(
+          `${API_URL}/variants/${examId}/${variantData.id}/questions`
+        );
+        const questionData = await questionRes.json();
+        setQuestions(questionData);
 
-      if (!variant) return setLoading(false);
+        // 4. Load student's submitted answers
+        const studentRes = await fetch(
+          `${API_URL}/students/${examId}/${studentId}`
+        );
+        const studentData = await studentRes.json();
 
-      const examQuestions = variant.questionIds
-        .map((qid: number) => mockQuestionBank.find((q) => q.id === qid))
-        .filter(Boolean) as Question[];
+        setStudentAnswers(
+          studentData.answers.map((a: any) => ({
+            questionId: a.questionId,
+            response: Array.isArray(a.response) ? a.response : [a.response],
+          }))
+        );
+      } catch (err) {
+        console.error("Error loading exam data:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
 
-      setQuestions(examQuestions);
-
-      const fromLocal = JSON.parse(
-        sessionStorage.getItem(`exam_${examId}_answers`) || "{}"
-      );
-
-      const parsed = Object.entries(fromLocal).map(
-        ([questionId, resp]: any) => ({
-          questionId: Number(questionId),
-          response: Array.isArray(resp) ? resp : [resp],
-        })
-      );
-
-      setStudentAnswers(parsed);
-
-      setLoading(false);
-    };
-
-    loadData();
+    load();
   }, [examId, studentId]);
 
+  // ---------------------------------------------------
+  // Utils
+  // ---------------------------------------------------
   const getAnswer = (qid: number) =>
     studentAnswers.find((a) => a.questionId === qid)?.response;
 
-  const isCorrectAnswer = (q: Question, studentAnswer: any) => {
-    if (!studentAnswer) return false;
+  const isCorrectAnswer = (q: Question, studentAnswer?: string[]) => {
+    if (!studentAnswer || studentAnswer.length === 0) return false;
 
     if (q.type === "multiple_choice")
-      return q.correctAnswers.includes(studentAnswer);
+      return q.correctAnswers.includes(studentAnswer[0]);
 
     if (q.type === "multiple_correct") {
-      const correctSet = new Set(q.correctAnswers);
-      const studentSet = new Set(studentAnswer);
+      const correct = new Set(q.correctAnswers);
+      const user = new Set(studentAnswer);
       return (
-        correctSet.size === studentSet.size &&
-        [...correctSet].every((ans) => studentSet.has(ans))
+        correct.size === user.size && [...correct].every((ans) => user.has(ans))
       );
     }
 
     if (q.type === "fill_blank" || q.type === "text_answer") {
-      const lower = String(studentAnswer).toLowerCase().trim();
-      return q.correctAnswers.some((ans) => ans.toLowerCase().trim() === lower);
+      const userText = studentAnswer[0].toLowerCase().trim();
+      return q.correctAnswers.some(
+        (ans) => ans.toLowerCase().trim() === userText
+      );
     }
 
     return false;
   };
 
+  // ---------------------------------------------------
+  // Loading / Not found
+  // ---------------------------------------------------
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -112,6 +124,9 @@ export default function CheckExamPage() {
       </div>
     );
 
+  // ---------------------------------------------------
+  // UI
+  // ---------------------------------------------------
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow">
@@ -143,11 +158,12 @@ export default function CheckExamPage() {
                   {i + 1}. {q.question}
                 </h3>
 
+                {/* Question image */}
                 {q.image && (
                   <img className="w-72 rounded border mb-3" src={q.image} />
                 )}
 
-                {/* student answer */}
+                {/* student's answer */}
                 <div className="mb-3 text-sm">
                   <p className="font-medium text-gray-700">Таны хариулт:</p>
                   <p
@@ -155,9 +171,7 @@ export default function CheckExamPage() {
                       correct ? "text-green-700" : "text-red-700"
                     }`}
                   >
-                    {Array.isArray(studentAnswer)
-                      ? studentAnswer.join(", ")
-                      : studentAnswer || "—"}
+                    {studentAnswer?.length ? studentAnswer.join(", ") : "—"}
                   </p>
                 </div>
 

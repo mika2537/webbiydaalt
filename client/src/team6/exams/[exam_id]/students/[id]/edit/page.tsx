@@ -1,51 +1,63 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import {
-  mockExams,
-  mockVariants,
-  mockQuestionBank,
-} from "../../../../../data/mockData";
 
 export default function TakeExamPage() {
   const { examId, studentId } = useParams();
   const navigate = useNavigate();
 
+  const API_URL = "http://localhost:3001";
+
   const [exam, setExam] = useState<any>(null);
+  const [variant, setVariant] = useState<any>(null);
   const [questions, setQuestions] = useState<any[]>([]);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
+  // -----------------------------
+  // 🔥 1. Exam, Variant, Questions Fetch
+  // -----------------------------
   useEffect(() => {
-    const examObj = mockExams.find((x) => String(x.id) === String(examId));
-    if (!examObj) {
-      setLoading(false);
-      return;
+    async function load() {
+      try {
+        // 1. Exam Info
+        const examRes = await fetch(`${API_URL}/exams/${examId}`);
+        const examData = await examRes.json();
+        setExam(examData);
+
+        // 2. Fetch student's assigned variant OR random variant
+        const variantRes = await fetch(
+          `${API_URL}/variants/${examId}/student/${studentId}`
+        );
+        const variantData = await variantRes.json();
+        setVariant(variantData);
+
+        // 3. Fetch questions for variant
+        const qRes = await fetch(
+          `${API_URL}/variants/${examId}/${variantData.id}/questions`
+        );
+        const qData = await qRes.json();
+        setQuestions(qData);
+
+        // 4. Load local saved answers
+        const saved = JSON.parse(
+          sessionStorage.getItem(`exam_${examId}_answers`) || "{}"
+        );
+        setAnswers(saved);
+      } catch (err) {
+        console.error("Error loading exam", err);
+      } finally {
+        setLoading(false);
+      }
     }
 
-    setExam(examObj);
+    load();
+  }, [examId, studentId]);
 
-    const variantObj = mockVariants.find(
-      (v) => String(v.examId) === String(examId)
-    );
-
-    const examQuestions = variantObj
-      ? variantObj.questionIds
-          .map((qid: number) => mockQuestionBank.find((q) => q.id === qid))
-          .filter(Boolean)
-      : [];
-
-    setQuestions(examQuestions);
-
-    const saved = JSON.parse(
-      sessionStorage.getItem(`exam_${examId}_answers`) || "{}"
-    );
-    setAnswers(saved);
-
-    setLoading(false);
-  }, [examId]);
-
+  // -----------------------------
+  // 🔥 2. Save Answers
+  // -----------------------------
   const handleAnswerChange = (value: any) => {
     const q = questions[currentQuestion];
     setAnswers((prev) => {
@@ -66,32 +78,50 @@ export default function TakeExamPage() {
     handleAnswerChange(updatedArray);
   };
 
-  const handleSubmit = () => {
+  // -----------------------------
+  // 🔥 3. Submit Exam
+  // -----------------------------
+  const handleSubmit = async () => {
     if (submitting) return;
     setSubmitting(true);
+
+    const payload = Object.entries(answers).map(([qId, value]) => ({
+      questionId: Number(qId),
+      response: Array.isArray(value) ? value : [value],
+    }));
+
+    await fetch(`${API_URL}/students/${examId}/${studentId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ answers: payload }),
+    });
 
     navigate(`/team6/exams/${examId}/students/${studentId}/check`);
   };
 
-  if (loading) {
+  // -----------------------------
+  // Loading / Error UI
+  // -----------------------------
+  if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center">
         ⏳ Ачааллаж байна...
       </div>
     );
-  }
 
-  if (!exam || questions.length === 0) {
+  if (!exam || questions.length === 0)
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex flex-col items-center justify-center">
         ❌ Шалгалтын мэдээлэл олдсонгүй.
         <Link to="/team6/student" className="mt-4 underline">
           Буцах
         </Link>
       </div>
     );
-  }
 
+  // -----------------------------
+  // RENDER QUESTIONS
+  // -----------------------------
   const q = questions[currentQuestion];
   const currentAnswer =
     answers[q.id] || (q.type === "multiple_correct" ? [] : "");
@@ -109,7 +139,7 @@ export default function TakeExamPage() {
           </Link>
         </div>
 
-        {/* Progress */}
+        {/* Progress Bar */}
         <div className="mb-6">
           <div className="flex justify-between text-sm mb-2">
             <span>
@@ -130,7 +160,7 @@ export default function TakeExamPage() {
           </div>
         </div>
 
-        {/* Question */}
+        {/* Question Card */}
         <div className="bg-white p-6 rounded-lg shadow border mb-6">
           <h2 className="text-xl font-semibold mb-4">
             {currentQuestion + 1}. {q.question}
@@ -143,7 +173,7 @@ export default function TakeExamPage() {
           <div className="space-y-3">
             {/* MULTIPLE CHOICE */}
             {q.type === "multiple_choice" &&
-              q.options.map((opt: string, index: number) => (
+              q.options?.map((opt: string, index: number) => (
                 <label
                   key={index}
                   className={`block p-4 border-2 rounded-lg cursor-pointer ${
@@ -166,7 +196,7 @@ export default function TakeExamPage() {
 
             {/* MULTIPLE CORRECT */}
             {q.type === "multiple_correct" &&
-              q.options.map((opt: string, index: number) => (
+              q.options?.map((opt: string, index: number) => (
                 <label
                   key={index}
                   className={`block p-4 border-2 rounded-lg cursor-pointer ${
@@ -177,7 +207,6 @@ export default function TakeExamPage() {
                 >
                   <input
                     type="checkbox"
-                    value={opt}
                     checked={currentAnswer.includes(opt)}
                     onChange={() => handleMultipleChange(opt)}
                     className="mr-3"
@@ -196,7 +225,7 @@ export default function TakeExamPage() {
               />
             )}
 
-            {/* TEXT */}
+            {/* TEXT ANSWER */}
             {q.type === "text_answer" && (
               <textarea
                 value={currentAnswer}
@@ -208,7 +237,7 @@ export default function TakeExamPage() {
           </div>
         </div>
 
-        {/* Navigation Buttons */}
+        {/* Buttons */}
         <div className="flex justify-between">
           <button
             onClick={() =>

@@ -1,11 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { Link } from "react-router-dom";
-import {
-  mockExams,
-  mockQuestionBank,
-  mockStudentExams,
-} from "../../../../data/mockData";
+import { useParams, Link } from "react-router-dom";
 import BackButton from "../../../../components/BackButton";
 
 interface StudentAnswer {
@@ -14,29 +8,25 @@ interface StudentAnswer {
 }
 
 interface StudentExam {
-  id?: number;
-  examId?: number;
-  studentId?: number;
-  studentName?: string;
-  variantId?: number;
-  status?: string;
-  startTime?: string | null;
-  endTime?: string | null;
-  score?: number | null;
+  examId: number;
+  studentId: number;
   answers: StudentAnswer[];
+  score?: number;
 }
+
 interface Question {
   id: number;
   question: string;
   options?: string[];
   correctAnswers: string[];
-  type: string;
   marks: number;
-  image?: string; // ✅ added so q.image doesn’t cause TS errors
+  type: string;
+  image?: string;
 }
 
 export default function CheckExamPage() {
   const { examId, id } = useParams();
+  const API_URL = "http://localhost:3001";
 
   const [exam, setExam] = useState<any>(null);
   const [studentExam, setStudentExam] = useState<StudentExam | null>(null);
@@ -44,78 +34,78 @@ export default function CheckExamPage() {
   const [score, setScore] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  // ---------------------------
+  // 🔥 Backend-аас өгөгдөл татах
+  // ---------------------------
   useEffect(() => {
-    const loadExamData = () => {
-      const foundExam = mockExams.find((e) => e.id === Number(examId));
-      const foundStudentExam = mockStudentExams.find(
-        (s) => s.examId === Number(examId) && s.studentId === Number(id)
-      );
+    async function load() {
+      try {
+        // 1. Шалгалтын мэдээлэл
+        const examRes = await fetch(`${API_URL}/exams/${examId}`);
+        const examData = await examRes.json();
+        setExam(examData);
 
-      if (!foundExam) {
-        console.warn("Exam not found:", examId);
-        setLoading(false);
-        return;
-      }
+        // 2. Сурагчийн шалгалтын өгөгдөл
+        const studentRes = await fetch(`${API_URL}/students/${examId}/${id}`);
+        const studentData = await studentRes.json();
+        setStudentExam(studentData);
 
-      setExam(foundExam);
+        // 3. Шалгалтын бүх асуулт
+        const questionsRes = await fetch(
+          `${API_URL}/exams/${examId}/questions`
+        );
+        const questionsData = await questionsRes.json();
+        setQuestions(questionsData);
 
-      setStudentExam(
-        foundStudentExam
-          ? {
-              ...foundStudentExam,
-              answers: (foundStudentExam.answers as StudentAnswer[]) ?? [],
-            }
-          : { answers: [] as StudentAnswer[] }
-      );
-      const topicIds =
-        foundExam.selectedTopics?.map((t: any) => t.topicId) || [];
-      const examQuestions = mockQuestionBank.filter((q) =>
-        topicIds.includes(q.topicId)
-      );
-      setQuestions(examQuestions);
+        // 4. Дүн тооцоолох
+        const correctCount = questionsData.reduce(
+          (sum: number, q: Question) => {
+            const studentAnswer = studentData.answers?.find(
+              (a: StudentAnswer) => a.questionId === q.id
+            )?.response;
 
-      if (foundStudentExam && examQuestions.length > 0) {
-        const correctCount = examQuestions.reduce((sum, q) => {
-          const studentAnswer = studentExam?.answers?.find(
-            (a) => a.questionId === q.id
-          )?.response;
+            const isCorrect =
+              studentAnswer &&
+              q.correctAnswers.length === studentAnswer.length &&
+              q.correctAnswers.every((ans) => studentAnswer.includes(ans));
 
-          const isCorrect =
-            studentAnswer &&
-            q.correctAnswers.length === studentAnswer.length &&
-            q.correctAnswers.every((ans) => studentAnswer.includes(ans));
-
-          return isCorrect ? sum + 1 : sum;
-        }, 0);
+            return isCorrect ? sum + 1 : sum;
+          },
+          0
+        );
 
         setScore(
           Math.round(
-            (correctCount / examQuestions.length) * foundExam.totalMarks
+            (correctCount / questionsData.length) * examData.totalMarks
           )
         );
+
+        setLoading(false);
+      } catch (err) {
+        console.error("API error:", err);
+        setLoading(false);
       }
+    }
 
-      setLoading(false);
-    };
-
-    loadExamData();
+    load();
   }, [examId, id]);
+
+  // -------------------------
+  // UI Rendering
+  // -------------------------
 
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-600">
-        ⏳ Шалгалтын мэдээлэл ачаалж байна...
+        ⏳ Ачаалж байна...
       </div>
     );
 
   if (!exam)
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-gray-600">
-        ❌ Шалгалт эсвэл сурагчийн мэдээлэл олдсонгүй.
-        <Link
-          to="/team6/student"
-          className="mt-4 text-black underline hover:text-gray-700"
-        >
+        ❌ Шалгалтын мэдээлэл олдсонгүй.
+        <Link to="/team6/student" className="mt-4 underline">
           Буцах
         </Link>
       </div>
@@ -123,38 +113,35 @@ export default function CheckExamPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-sm p-8 border border-gray-200">
+      <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-sm p-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-1">
-              {exam.title}
-            </h1>
+            <h1 className="text-3xl font-bold">{exam.title}</h1>
             <p className="text-gray-600">{exam.description}</p>
           </div>
-          <BackButton variant="link" />
+          <BackButton />
         </div>
 
         {/* Summary */}
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex justify-between items-center">
+        <div className="mb-6 p-4 bg-blue-50 rounded-lg border flex justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-blue-900">🎯 Таны дүн</h2>
-            <p className="text-gray-700 mt-1">
+            <h2 className="text-lg font-semibold">🎯 Таны дүн</h2>
+            <p>
               Нийт оноо: {score}/{exam.totalMarks}
             </p>
           </div>
-          <div className="text-3xl font-bold text-blue-900">
+          <div className="text-3xl font-bold">
             {((score / exam.totalMarks) * 100).toFixed(0)}%
           </div>
         </div>
 
-        {/* Question Review */}
+        {/* Questions */}
         <div className="space-y-6">
           {questions.map((q, i) => {
             const studentAnswer =
-              studentExam?.answers?.find(
-                (a: StudentAnswer) => a.questionId === q.id
-              )?.response || [];
+              studentExam?.answers?.find((a) => a.questionId === q.id)
+                ?.response || [];
 
             const isCorrect =
               studentAnswer.length > 0 &&
@@ -164,36 +151,33 @@ export default function CheckExamPage() {
             return (
               <div
                 key={q.id}
-                className={`p-5 rounded-lg border-2 ${
+                className={`p-5 rounded-lg border-2
+                ${
                   isCorrect
                     ? "border-green-300 bg-green-50"
                     : "border-red-300 bg-red-50"
                 }`}
               >
-                <h3 className="font-semibold text-gray-900 mb-2">
+                <h3 className="font-semibold mb-2">
                   {i + 1}. {q.question}
                 </h3>
 
                 {q.image && (
-                  <img
-                    src={q.image}
-                    alt="Question"
-                    className="w-64 rounded-md border mb-3"
-                  />
+                  <img src={q.image} className="w-64 rounded border mb-3" />
                 )}
 
-                {q.options && (
-                  <ul className="ml-5 mb-2 list-disc text-gray-700 text-sm">
-                    {q.options.map((opt, idx) => (
+                {q.options?.length && (
+                  <ul className="list-disc ml-5">
+                    {q.options!.map((opt, idx) => (
                       <li
                         key={idx}
-                        className={`p-1 rounded ${
+                        className={
                           studentAnswer.includes(opt)
                             ? isCorrect
-                              ? "text-green-700 font-semibold"
-                              : "text-red-700 font-semibold"
+                              ? "text-green-700 font-bold"
+                              : "text-red-700 font-bold"
                             : ""
-                        }`}
+                        }
                       >
                         {opt}
                       </li>
@@ -201,20 +185,16 @@ export default function CheckExamPage() {
                   </ul>
                 )}
 
-                <div className="text-sm mt-2">
+                <div className="mt-2 text-sm">
                   <p>
-                    🟢 Зөв хариулт:{" "}
-                    <span className="font-semibold text-green-700">
+                    🟢 Зөв:{" "}
+                    <span className="font-semibold">
                       {q.correctAnswers.join(", ")}
                     </span>
                   </p>
                   <p>
                     🔵 Таны хариулт:{" "}
-                    <span
-                      className={`font-semibold ${
-                        isCorrect ? "text-green-700" : "text-red-700"
-                      }`}
-                    >
+                    <span className="font-semibold">
                       {studentAnswer.length > 0
                         ? studentAnswer.join(", ")
                         : "—"}
@@ -230,7 +210,7 @@ export default function CheckExamPage() {
         <div className="mt-10 flex justify-center">
           <Link
             to="/team6/student"
-            className="px-6 py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition"
+            className="px-6 py-3 bg-black text-white rounded-lg"
           >
             Буцах
           </Link>
