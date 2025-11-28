@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
-import { mockVariants } from "../../../data/mockData";
 import BackButton from "../../../components/BackButton";
+const API_URL = "http://localhost:3001/api";
 
 interface Variant {
-  id: number;
-  examId: number;
+  id: string;
+  examId: string;
   name: string;
-  description: string;
-  totalQuestions: number;
-  createdAt: string;
+  description?: string;
+  totalQuestions?: number;
+  createdAt?: string;
 }
 
 export default function VariantListPage() {
@@ -19,10 +19,16 @@ export default function VariantListPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadVariants = () => {
-      const filtered = mockVariants.filter((v) => v.examId === Number(examId));
-      setVariants(filtered);
-      setLoading(false);
+    const loadVariants = async () => {
+      try {
+        const res = await fetch(`${API_URL}/variants/${examId}`);
+        const data = await res.json();
+        setVariants(data);
+      } catch (err) {
+        console.error("Error loading variants", err);
+      } finally {
+        setLoading(false);
+      }
     };
     loadVariants();
   }, [examId]);

@@ -1,17 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { mockVariants } from "../../../../data/mockData";
 import BackButton from "../../../../components/BackButton";
-
-interface Variant {
-  id: number;
-  examId: number;
-  name: string;
-  description: string;
-  questionIds: number[];
-  totalQuestions: number;
-  createdAt: string;
-}
+const API_URL = "http://localhost:3001/api";
 
 export default function CreateVariantPage() {
   const navigate = useNavigate();
@@ -31,29 +21,27 @@ export default function CreateVariantPage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage("");
     setLoading(true);
 
     try {
-      const newVariant: Variant = {
-        id: Math.floor(Math.random() * 10000),
-        examId: Number(examId),
-        name: form.name.trim(),
-        description: form.description.trim(),
-        questionIds: [],
-        totalQuestions: 0,
-        createdAt: new Date().toISOString(),
-      };
+      const res = await fetch(`${API_URL}/variants/${examId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          description: form.description.trim(),
+        }),
+      });
 
-      mockVariants.push(newVariant);
+      if (!res.ok) throw new Error("Failed to create variant");
 
-      console.log("Амжилттай нэмэгдлээ!", newVariant);
       setMessage("Амжилттай нэмэгдлээ!");
       setForm({ name: "", description: "" });
 
-      setTimeout(() => navigate(`/team6/exams/${examId}`), 1200);
+      setTimeout(() => navigate(`/team6/exams/${examId}/variants`), 1200);
     } catch (error) {
       console.error("❌ Вариант үүсгэхэд алдаа:", error);
       setMessage("⚠️ Вариант үүсгэхэд алдаа гарлаа!");
