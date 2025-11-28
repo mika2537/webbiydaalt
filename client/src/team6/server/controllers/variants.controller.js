@@ -13,11 +13,13 @@ export async function getVariant(req, res) {
 }
 
 export async function updateVariant(req, res) {
-  res.json(
-    await VariantsService.updateVariant(
-      req.params.examId,
-      req.params.id,
-      req.body
-    )
+  const updated = await VariantsService.updateVariant(
+    req.params.examId,
+    req.params.id,
+    req.body
   );
+
+  if (!updated) return res.status(404).json({ message: "Variant not found" });
+
+  res.json(updated);
 }
