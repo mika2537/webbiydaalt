@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
-import { mockVariants } from "../../../../../data/mockData";
+
+const API_URL = "http://localhost:3001/api";
 
 interface Variant {
   id: number;
@@ -28,17 +29,22 @@ export default function EditVariantPage() {
 
   // ✅ Load existing variant data
   useEffect(() => {
-    const v = mockVariants.find(
-      (x) => x.id === Number(variantId) && x.examId === Number(examId)
-    );
-    if (v) {
-      setVariant(v);
-      setForm({
-        name: v.name,
-        description: v.description,
-      });
-    }
-    setLoading(false);
+    const loadVariant = async () => {
+      try {
+        const res = await fetch(`${API_URL}/variants/${examId}/${variantId}`);
+        const data = await res.json();
+        setVariant(data);
+        setForm({
+          name: data.name,
+          description: data.description || "",
+        });
+      } catch (err) {
+        console.error("Error loading variant", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadVariant();
   }, [examId, variantId]);
 
   const handleChange = (
@@ -48,8 +54,7 @@ export default function EditVariantPage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Save edited data (mock update)
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage("");
 
@@ -59,16 +64,11 @@ export default function EditVariantPage() {
     }
 
     try {
-      const index = mockVariants.findIndex(
-        (x) => x.id === Number(variantId) && x.examId === Number(examId)
-      );
-      if (index !== -1) {
-        mockVariants[index] = {
-          ...mockVariants[index],
-          name: form.name.trim(),
-          description: form.description.trim(),
-        };
-      }
+      const res = await fetch(`${API_URL}/variants/${examId}/${variantId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
 
       setMessage("Амжилттай шинэчлэгдлээ!");
       setTimeout(() => {

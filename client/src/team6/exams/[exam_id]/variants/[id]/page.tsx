@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
-import { mockVariants, mockQuestionBank } from "../../../../data/mockData";
 import BackButton from "../../../../components/BackButton";
+
+const API_URL = "http://localhost:3001/api";
 
 interface Question {
   id: number;
@@ -29,19 +30,27 @@ export default function VariantDetailPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
 
   useEffect(() => {
-    const loadVariant = () => {
-      const v = mockVariants.find(
-        (x) => x.id === Number(variantId) && x.examId === Number(examId)
-      );
-      if (v) {
-        setVariant(v);
-        const relatedQuestions = mockQuestionBank.filter((q) =>
-          v.questionIds.includes(q.id)
-        );
-        setQuestions(relatedQuestions);
+    const load = async () => {
+      try {
+        const res = await fetch(`${API_URL}/variants/${examId}/${variantId}`);
+        const data = await res.json();
+        setVariant(data);
+
+        // If backend does not have question API, leave empty
+        if (data.questionIds) {
+          setQuestions(
+            data.questionIds.map((id: number) => ({
+              id,
+              question: `Асуулт #${id}`,
+              type: "text",
+            }))
+          );
+        }
+      } catch (err) {
+        console.error("Error loading variant", err);
       }
     };
-    loadVariant();
+    load();
   }, [examId, variantId]);
 
   if (!variant) {

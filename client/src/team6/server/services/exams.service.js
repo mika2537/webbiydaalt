@@ -27,6 +27,6 @@ export async function updateExam(examId, data) {
 export async function getExamReport(examId) {
   return {
     examId,
-    stats: { total: 10, passed: 7, failed: 3 },
+    stats: { total, passed, failed },
   };
 }
