@@ -1,11 +1,9 @@
 import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import {
-  mockExams,
-  mockExamStats,
-  mockStudentExams,
-} from "../../../data/mockData";
+
+const API_URL = "http://localhost:3001/api";
+
 import BackButton from "../../../components/BackButton";
 
 export default function ExamReportPage() {
@@ -16,20 +14,27 @@ export default function ExamReportPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load data from mockData.js
-    const loadMockReport = () => {
-      const foundExam = mockExams.find((e) => String(e.id) === String(examId));
-      const foundStats = examId ? (mockExamStats as any)[examId] : null;
-      const results = mockStudentExams.filter(
-        (r) => String(r.examId) === String(examId)
-      );
+    const loadReport = async () => {
+      try {
+        const examRes = await fetch(`${API_URL}/exams/${examId}`);
+        const examData = await examRes.json();
 
-      setExam(foundExam);
-      setStats(foundStats);
-      setStudentResults(results);
+        const statsRes = await fetch(`${API_URL}/exams/${examId}/stats`);
+        const statsData = await statsRes.json();
+
+        const resultsRes = await fetch(`${API_URL}/exams/${examId}/students`);
+        const resultsData = await resultsRes.json();
+
+        setExam(examData);
+        setStats(statsData);
+        setStudentResults(Array.isArray(resultsData) ? resultsData : []);
+      } catch (error) {
+        console.error("API Error:", error);
+      }
       setLoading(false);
     };
-    loadMockReport();
+
+    loadReport();
   }, [examId]);
 
   const getStatusBadge = (status: string) => {

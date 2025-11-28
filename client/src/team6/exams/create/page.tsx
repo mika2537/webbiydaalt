@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { mockCourses, mockTopics, mockQuestionBank } from "../../data/mockData";
 import BackButton from "../../components/BackButton";
+
+const API_URL = "http://localhost:3001/api";
 
 // Types
 interface Course {
@@ -65,13 +66,25 @@ export default function CreateExamPage() {
   );
 
   useEffect(() => {
-    const loadData = () => {
-      const courseData = mockCourses.find((c) => c.id === course_id);
-      setCourse(courseData || null);
-      setTopics(mockTopics.filter((t) => t.courseId === course_id));
-      setQuestionBank(mockQuestionBank.filter((q) => q.courseId === course_id));
+    const loadData = async () => {
+      try {
+        const courseRes = await fetch(`${API_URL}/courses/${course_id}`);
+        const courseData = await courseRes.json();
+        setCourse(courseData);
+
+        const topicRes = await fetch(`${API_URL}/topics/course/${course_id}`);
+        const topicsData = await topicRes.json();
+        setTopics(Array.isArray(topicsData) ? topicsData : []);
+
+        const bankRes = await fetch(`${API_URL}/questions/course/${course_id}`);
+        const bankData = await bankRes.json();
+        setQuestionBank(Array.isArray(bankData) ? bankData : []);
+      } catch (error) {
+        console.error("API Error:", error);
+      }
       setLoading(false);
     };
+
     loadData();
   }, []);
 
@@ -103,12 +116,8 @@ export default function CreateExamPage() {
       questionCount: count,
     })
   );
-  const saveExamToLocal = (exam: any) => {
-    const existing = JSON.parse(localStorage.getItem("createdExams") || "[]");
-    existing.push(exam);
-    localStorage.setItem("createdExams", JSON.stringify(existing));
-  };
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.title.trim()) {
@@ -122,7 +131,6 @@ export default function CreateExamPage() {
     }
 
     const newExam = {
-      id: Date.now(), // Unique ID
       ...formData,
       courseId: course_id,
       selectedTopics: selectedTopicsList,
@@ -132,16 +140,24 @@ export default function CreateExamPage() {
       createdAt: new Date().toISOString(),
       startDate: `${formData.startDate}T${formData.startTime}:00`,
       endDate: `${formData.endDate}T${formData.endTime}:00`,
-      duration: formData.duration, // Шалгалт өгөх хугацаа (минут)
+      duration: formData.duration,
     };
 
-    // localStorage-д хадгалах
-    saveExamToLocal(newExam);
+    try {
+      const res = await fetch(`${API_URL}/exams`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newExam),
+      });
 
-    console.log("✅ Шалгалт үүсгэж localStorage-д хадгаллаа:", newExam);
-    alert("Шалгалт амжилттай үүсгэлээ!");
+      if (!res.ok) throw new Error("Failed to create exam");
 
-    navigate("/team6/courses/1/exams");
+      alert("Шалгалт амжилттай үүсгэлээ!");
+      navigate("/team6/courses/1/exams");
+    } catch (error) {
+      console.error("Create error:", error);
+      alert("Алдаа гарлаа!");
+    }
   };
 
   if (loading) {

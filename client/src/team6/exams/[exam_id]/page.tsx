@@ -1,7 +1,8 @@
 import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { mockExams, mockVariants, mockExamStats } from "../../data/mockData";
+
+const API_URL = "http://localhost:3001/api";
 
 export default function ExamDetailPage() {
   const { examId } = useParams();
@@ -9,47 +10,25 @@ export default function ExamDetailPage() {
   const [variants, setVariants] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [dataSource, setDataSource] = useState<"localStorage" | "mockData">(
-    "mockData"
-  );
-
-  const loadExamFromLocal = () => {
-    return JSON.parse(localStorage.getItem("selectedExam") || "null");
-  };
-
-  const loadVariantsFromLocal = () => {
-    return JSON.parse(localStorage.getItem("selectedExamVariants") || "[]");
-  };
-
-  const loadStatsFromLocal = () => {
-    return JSON.parse(localStorage.getItem("selectedExamStats") || "null");
-  };
 
   useEffect(() => {
-    const loadData = () => {
-      // 1) LOCAL DATA
-      const localExam = loadExamFromLocal();
-      const localVariants = loadVariantsFromLocal();
-      const localStats = loadStatsFromLocal();
+    const loadData = async () => {
+      try {
+        const examRes = await fetch(`${API_URL}/exams/${examId}`);
+        const examData = await examRes.json();
 
-      if (localExam && String(localExam.id) === String(examId)) {
-        setExam(localExam);
-        setVariants(localVariants || []);
-        setStats(localStats || null);
-        setDataSource("localStorage");
-        setLoading(false);
-        return;
+        const variantsRes = await fetch(`${API_URL}/variants/exam/${examId}`);
+        const variantsData = await variantsRes.json();
+
+        const statsRes = await fetch(`${API_URL}/exams/${examId}/stats`);
+        const statsData = await statsRes.json();
+
+        setExam(examData);
+        setVariants(Array.isArray(variantsData) ? variantsData : []);
+        setStats(statsData || null);
+      } catch (error) {
+        console.error("API Error:", error);
       }
-      const foundExam = mockExams.find((e) => String(e.id) === String(examId));
-      const foundVariants = mockVariants.filter(
-        (v) => String(v.examId) === String(examId)
-      );
-      const foundStats = examId ? (mockExamStats as any)[examId] : null;
-
-      setExam(foundExam || null);
-      setVariants(foundVariants);
-      setStats(foundStats);
-      setDataSource("mockData");
       setLoading(false);
     };
 
@@ -136,15 +115,9 @@ export default function ExamDetailPage() {
             </div>
             <div className="flex gap-2 items-center">
               <span
-                className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  dataSource === "localStorage"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-gray-100 text-gray-700"
-                }`}
+                className={`px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800`}
               >
-                {dataSource === "localStorage"
-                  ? "💾 localStorage"
-                  : "📦 Mock Data"}
+                🌐 Backend API
               </span>
               {getStatusBadge(exam.status)}
             </div>

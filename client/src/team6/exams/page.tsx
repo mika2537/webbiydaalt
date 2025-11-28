@@ -1,65 +1,54 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import {
-  mockCourses,
-  mockExams,
-  mockVariants,
-  mockExamStats,
-} from "../data/mockData";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import BackButton from "../components/BackButton";
+
+// API BASE URL
+const API_URL = "http://localhost:3001/api";
 
 export default function ExamListPage() {
   const navigate = useNavigate();
+  const { courseId } = useParams(); // dynamic route
   const [course, setCourse] = useState<any>(null);
   const [exams, setExams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // You can manually set course_id (static mode)
-  const course_id = 1; // Example course: Компьютерын архитектур
+  const handleExamClick = async (exam: any) => {
+    // Fetch variants from backend
+    const variantsRes = await fetch(`${API_URL}/variants/exam/${exam.id}`);
+    const examVariants = await variantsRes.json();
 
-  const handleExamClick = (exam: any) => {
-    const examVariants = mockVariants.filter(
-      (v) => String(v.examId) === String(exam.id)
-    );
-    const examStats = (mockExamStats as any)[exam.id] || null;
+    // Fetch exam stats from backend
+    const statsRes = await fetch(`${API_URL}/exams/${exam.id}/stats`);
+    const examStats = await statsRes.json();
 
+    // Save to localStorage (if needed)
     localStorage.setItem("selectedExam", JSON.stringify(exam));
     localStorage.setItem("selectedExamVariants", JSON.stringify(examVariants));
     localStorage.setItem("selectedExamStats", JSON.stringify(examStats));
 
-    // Шалгалтын дэлгэрэнгүй хуудас руу шилжих
     navigate(`/team6/exams/${exam.id}`);
   };
 
   useEffect(() => {
-    const loadData = () => {
-      const courseData = mockCourses.find(
-        (c) => String(c.id) === String(course_id)
-      );
+    const loadData = async () => {
+      try {
+        // 1. Load course
+        const courseRes = await fetch(`${API_URL}/courses/${courseId}`);
+        const courseData = await courseRes.json();
 
-      // Mock data-аас шалгалтууд
-      const mockExamData = mockExams.filter(
-        (e) => String(e.courseId) === String(course_id)
-      );
+        // 2. Load exams for this course
+        const examRes = await fetch(`${API_URL}/exams?courseId=${courseId}`);
+        const examData = await examRes.json();
 
-      // localStorage-аас үүсгэсэн шалгалтууд
-      const createdExams = JSON.parse(
-        localStorage.getItem("createdExams") || "[]"
-      );
-
-      console.log("📦 Шалгалтууд ачааллаж байна:");
-      console.log("  Mock exams:", mockExamData.length);
-      console.log("  Created exams (localStorage):", createdExams.length);
-
-      // Хоёуланг нэгтгэх (localStorage-ийнхийг эхэнд нь)
-      const allExams = [...createdExams, ...mockExamData];
-
-      setCourse(courseData);
-      setExams(allExams);
+        setCourse(courseData);
+        setExams(examData);
+      } catch (error) {
+        console.error("❌ API error:", error);
+      }
       setLoading(false);
     };
     loadData();
-  }, [course_id]);
+  }, [courseId]);
 
   const getStatusBadge = (status: string) => {
     const badges: any = {
@@ -122,7 +111,7 @@ export default function ExamListPage() {
               </p>
             </div>
             <Link
-              to={`/team6/courses/:courseId/exams/create`}
+              to={`/team6/courses/${courseId}/exams/create`}
               className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors font-medium"
             >
               + Шинэ шалгалт нэмэх
@@ -141,7 +130,7 @@ export default function ExamListPage() {
               Энэ хичээлд одоогоор шалгалт нэмэгдээгүй байна.
             </p>
             <Link
-              to={`/team6/courses/:courseId/exams/create`}
+              to={`/team6/courses/${courseId}/exams/create`}
               className="inline-block bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors"
             >
               Шалгалт нэмэх
@@ -159,18 +148,11 @@ export default function ExamListPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-xl font-bold text-gray-900">
-                          {exam.title || "Нэргүй шалгалт"}
+                          {exam.title}
                         </h3>
-                        {exam.id > 1000000 && (
-                          <span className="px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full">
-                            ✨ Шинэ
-                          </span>
-                        )}
                         {getStatusBadge(exam.status)}
                       </div>
-                      <p className="text-gray-600">
-                        {exam.description || "Тайлбар байхгүй"}
-                      </p>
+                      <p className="text-gray-600">{exam.description}</p>
                     </div>
                   </div>
 
@@ -186,8 +168,7 @@ export default function ExamListPage() {
 
                   <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                     <div className="text-sm text-gray-500">
-                      Үүсгэсэн: {exam.createdBy || "Тодорхойгүй"} •{" "}
-                      {formatDate(exam.createdAt)}
+                      Үүсгэсэн: {exam.createdBy} • {formatDate(exam.createdAt)}
                     </div>
                     <div className="flex gap-2">
                       <Link

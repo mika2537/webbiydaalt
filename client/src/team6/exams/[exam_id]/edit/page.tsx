@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
-import { mockExams } from "../../../data/mockData";
 import BackButton from "../../../components/BackButton";
+
+const API_URL = "http://localhost:3001/api";
 
 export interface Exam {
   id: number;
@@ -37,20 +38,29 @@ export default function EditExamPage() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // ✅ Load exam from mock data
   useEffect(() => {
-    const foundExam = mockExams.find((e) => e.id === Number(examId));
-    if (foundExam) {
-      setExam(foundExam);
-      setFormData({
-        title: foundExam.title,
-        description: foundExam.description,
-        examDate: foundExam.startDate,
-        duration: String(foundExam.duration),
-        totalMarks: String(foundExam.totalMarks),
-      });
-    }
-    setLoading(false);
+    const loadExam = async () => {
+      try {
+        const res = await fetch(`${API_URL}/exams/${examId}`);
+        const data = await res.json();
+
+        if (data) {
+          setExam(data);
+          setFormData({
+            title: data.title,
+            description: data.description,
+            examDate: data.startDate,
+            duration: String(data.duration),
+            totalMarks: String(data.totalMarks),
+          });
+        }
+      } catch (error) {
+        console.error("API Error:", error);
+      }
+      setLoading(false);
+    };
+
+    loadExam();
   }, [examId]);
 
   const handleChange = (
@@ -60,7 +70,7 @@ export default function EditExamPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage("");
 
@@ -70,22 +80,21 @@ export default function EditExamPage() {
     }
 
     try {
-      const index = mockExams.findIndex((e) => e.id === Number(examId));
-      if (index !== -1) {
-        mockExams[index] = {
-          ...mockExams[index],
+      const res = await fetch(`${API_URL}/exams/${examId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           title: formData.title.trim(),
           description: formData.description.trim(),
           startDate: formData.examDate,
           duration: Number(formData.duration),
           totalMarks: Number(formData.totalMarks),
-          // updatedAt: new Date().toISOString(),
-        };
-      }
+        }),
+      });
 
-      console.log("✅ Exam updated:", mockExams[index]);
+      if (!res.ok) throw new Error("Update failed");
+
       setMessage("Шалгалтын мэдээлэл амжилттай шинэчлэгдлээ!");
-
       setTimeout(() => navigate(`/team6/exams/${examId}`), 1200);
     } catch (error) {
       console.error("❌ Error updating exam:", error);
