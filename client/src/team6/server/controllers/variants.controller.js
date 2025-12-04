@@ -1,9 +1,5 @@
 import * as VariantsService from "../services/variants.service.js";
 
-export async function getVariants(req, res) {
-  res.json(await VariantsService.getVariants(req.params.examId));
-}
-
 export async function createVariant(req, res) {
   res.json(await VariantsService.createVariant(req.params.examId, req.body));
 }
@@ -22,4 +18,9 @@ export async function updateVariant(req, res) {
   if (!updated) return res.status(404).json({ message: "Variant not found" });
 
   res.json(updated);
+}
+export async function deleteVariants(req, res) {
+  res.json(
+    await VariantsService.deleteVariants(req.params.examId, req.body.ids)
+  );
 }

@@ -19,6 +19,8 @@ interface Topic {
   description: string;
 }
 
+type DifficultyLevel = "easy" | "medium" | "hard";
+
 interface Question {
   id: number;
   courseId: number;
@@ -26,6 +28,7 @@ interface Question {
   question: string;
   type: string;
   marks: number;
+  level: DifficultyLevel;
 }
 
 interface FormData {
@@ -61,9 +64,17 @@ export default function CreateExamPage() {
     passingMarks: 50,
   });
 
-  const [selectedTopics, setSelectedTopics] = useState<Record<number, number>>(
+  const [selectedTopics, setSelectedTopics] = useState<Record<string, number>>(
     {}
   );
+
+  const [selectedDifficulties, setSelectedDifficulties] = useState<
+    Record<DifficultyLevel, number>
+  >({
+    easy: 0,
+    medium: 0,
+    hard: 0,
+  });
 
   useEffect(() => {
     const loadData = async () => {
@@ -110,6 +121,11 @@ export default function CreateExamPage() {
     0
   );
 
+  const totalDifficultyQuestions =
+    selectedDifficulties.easy +
+    selectedDifficulties.medium +
+    selectedDifficulties.hard;
+
   const selectedTopicsList = Object.entries(selectedTopics).map(
     ([topicId, count]) => ({
       topicId: Number(topicId),
@@ -125,7 +141,7 @@ export default function CreateExamPage() {
       return;
     }
 
-    if (totalQuestions === 0) {
+    if (totalQuestions === 0 && totalDifficultyQuestions === 0) {
       alert("1 асуулт заавал сонгоно!");
       return;
     }
@@ -134,7 +150,8 @@ export default function CreateExamPage() {
       ...formData,
       courseId: course_id,
       selectedTopics: selectedTopicsList,
-      totalQuestions,
+      selectedDifficulties,
+      totalQuestions: totalQuestions + totalDifficultyQuestions,
       status: "upcoming",
       createdBy: "Багш",
       createdAt: new Date().toISOString(),
@@ -272,14 +289,16 @@ export default function CreateExamPage() {
             </div>
           </div>
 
-          {/* QUESTION SELECTION */}
+          {/* QUESTION SELECTION BY TOPIC */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex justify-between mb-6">
-              <h2 className="text-xl font-bold">Асуултын банкнаас сонгох</h2>
+              <h2 className="text-xl font-bold">
+                Асуултын банкнаас сэдвээр сонгох
+              </h2>
 
               <Link
                 to="/team6/question-bank"
-                className="px-4 py-2 bg-gray-100 rounded-lg"
+                className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
                 Банк харах →
               </Link>
@@ -323,23 +342,103 @@ export default function CreateExamPage() {
             {totalQuestions > 0 && (
               <div className="mt-4 p-4 bg-blue-50 border rounded-lg">
                 <p className="font-semibold">
-                  Нийт сонгосон асуулт: {totalQuestions}
+                  Сэдвээр сонгосон нийт асуулт: {totalQuestions}
                 </p>
               </div>
             )}
           </div>
 
+          {/* QUESTION SELECTION BY DIFFICULTY */}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h2 className="text-xl font-bold mb-4">
+              Асуултыг хүндийн түвшнээр сонгох
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {(["easy", "medium", "hard"] as DifficultyLevel[]).map(
+                (level) => {
+                  const availableQuestions = questionBank.filter(
+                    (q) => q.level === level
+                  );
+
+                  const levelLabels = {
+                    easy: "Хялбар",
+                    medium: "Дунд",
+                    hard: "Хэцүү",
+                  };
+
+                  return (
+                    <div key={level} className="border-2 p-4 rounded-lg">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-semibold">
+                          {levelLabels[level]}
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          Нийт: {availableQuestions.length} асуулт
+                        </span>
+                      </div>
+                      <input
+                        type="number"
+                        min={0}
+                        max={availableQuestions.length}
+                        value={selectedDifficulties[level]}
+                        onChange={(e) => {
+                          const count = parseInt(e.target.value) || 0;
+                          setSelectedDifficulties((prev) => ({
+                            ...prev,
+                            [level]: count,
+                          }));
+                        }}
+                        className="w-full border p-2 rounded"
+                        placeholder="Асуулт тоо"
+                      />
+                    </div>
+                  );
+                }
+              )}
+            </div>
+
+            {totalDifficultyQuestions > 0 && (
+              <div className="mt-4 p-4 bg-green-50 border rounded-lg">
+                <p className="font-semibold">
+                  Хүндээр сонгосон нийт асуулт: {totalDifficultyQuestions}
+                </p>
+                <p className="text-sm text-gray-600 mt-1">
+                  Хялбар: {selectedDifficulties.easy}, Дунд:{" "}
+                  {selectedDifficulties.medium}, Хэцүү:{" "}
+                  {selectedDifficulties.hard}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* TOTAL SUMMARY */}
+          {(totalQuestions > 0 || totalDifficultyQuestions > 0) && (
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-bold mb-4">Нийт дүн</h2>
+              <div className="p-4 bg-purple-50 border-2 border-purple-200 rounded-lg">
+                <p className="text-lg font-bold">
+                  Бүх асуултын нийлбэр:{" "}
+                  {totalQuestions + totalDifficultyQuestions}
+                </p>
+                <div className="mt-2 text-sm text-gray-700">
+                  <p>• Сэдвээр сонгосон: {totalQuestions}</p>
+                  <p>• Хүндээр сонгосон: {totalDifficultyQuestions}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex gap-4">
             <button
               type="submit"
-              className="flex-1 py-4 bg-black text-white rounded-lg"
+              className="flex-1 py-4 bg-black text-white rounded-lg hover:bg-gray-800"
             >
               Шалгалт үүсгэх
             </button>
 
             <Link
               to="/team6/exams"
-              className="flex-1 py-4 text-center border rounded-lg"
+              className="flex-1 py-4 text-center border rounded-lg hover:bg-gray-50"
             >
               Болих
             </Link>
