@@ -1,11 +1,12 @@
 import { Router } from "express";
-import * as VariantsController from "../controllers/variants.controller.js";
+import * as ExamsController from "../controllers/exams.controller.js";
 
 const router = Router();
 
-router.get("/:examId", VariantsController.getVariants);
-router.post("/:examId", VariantsController.createVariant);
-router.get("/:examId/:id", VariantsController.getVariant);
-router.put("/:examId/:id", VariantsController.updateVariant);
+router.get("/", ExamsController.getAllExams);
+router.post("/", ExamsController.createExam);
+router.get("/:examId", ExamsController.getExam);
+router.put("/:examId", ExamsController.updateExam);
+router.get("/:examId/report", ExamsController.getExamReport);
 
 export default router;

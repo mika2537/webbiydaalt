@@ -3,9 +3,16 @@ import * as VariantsController from "../controllers/variants.controller.js";
 
 const router = Router();
 
-router.get("/:examId", VariantsController.getVariants);
-router.post("/:examId", VariantsController.createVariant);
-router.get("/:examId/:id", VariantsController.getVariant);
-router.put("/:examId/:id", VariantsController.updateVariant);
+// ✔ Get all variants for one exam
+router.get("/exam/:examId", VariantsController.getVariants);
+
+// ✔ Create variant for exam
+router.post("/exam/:examId", VariantsController.createVariant);
+
+// ✔ Get one variant by ID
+router.get("/:id", VariantsController.getVariant);
+
+// ✔ Update variant by ID
+router.put("/:id", VariantsController.updateVariant);
 
 export default router;

@@ -1,4 +1,4 @@
-let Exams = [];
+let Exams = []; // in-memory DB
 
 export async function getAllExams() {
   return Exams;
@@ -20,6 +20,7 @@ export async function getExam(examId) {
 
 export async function updateExam(examId, data) {
   const index = Exams.findIndex((x) => x.id === examId);
+  if (index === -1) return null;
   Exams[index] = { ...Exams[index], ...data };
   return Exams[index];
 }
@@ -27,6 +28,10 @@ export async function updateExam(examId, data) {
 export async function getExamReport(examId) {
   return {
     examId,
-    stats: { total, passed, failed },
+    stats: {
+      total: 0,
+      passed: 0,
+      failed: 0,
+    },
   };
 }

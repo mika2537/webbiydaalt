@@ -26,10 +26,7 @@ export default function Index() {
 
       {/* =========== EXAM MANAGEMENT PAGES (Teacher) =========== */}
       <Route path="courses/:courseId/exams" element={<ExamsPage />} />
-      <Route
-        path="courses/:courseId/exams/create"
-        element={<ExamCreatePage />}
-      />
+      <Route path="courses/200/exams/create" element={<ExamCreatePage />} />
 
       <Route path="exams/:examId" element={<ExamDetailPage />} />
       <Route path="exams/:examId/edit" element={<ExamEditPage />} />

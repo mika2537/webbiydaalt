@@ -7,21 +7,35 @@ const API_URL = "http://localhost:3001/api";
 
 export default function ExamListPage() {
   const navigate = useNavigate();
-  const { courseId } = useParams(); // dynamic route
+  const { courseId } = useParams();
+
   const [course, setCourse] = useState<any>(null);
   const [exams, setExams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // ===============================
+  // Status calculation (LMS has no status)
+  // ===============================
+  function getExamStatus(open_on: string, close_on: string) {
+    const now = new Date();
+    const open = new Date(open_on);
+    const close = new Date(close_on);
+
+    if (now < open) return "upcoming";
+    if (now > close) return "completed";
+    return "active";
+  }
+
+  // ===============================
+  // When clicking an exam
+  // ===============================
   const handleExamClick = async (exam: any) => {
-    // Fetch variants from backend
     const variantsRes = await fetch(`${API_URL}/variants/exam/${exam.id}`);
     const examVariants = await variantsRes.json();
 
-    // Fetch exam stats from backend
     const statsRes = await fetch(`${API_URL}/exams/${exam.id}/stats`);
     const examStats = await statsRes.json();
 
-    // Save to localStorage (if needed)
     localStorage.setItem("selectedExam", JSON.stringify(exam));
     localStorage.setItem("selectedExamVariants", JSON.stringify(examVariants));
     localStorage.setItem("selectedExamStats", JSON.stringify(examStats));
@@ -29,27 +43,54 @@ export default function ExamListPage() {
     navigate(`/team6/exams/${exam.id}`);
   };
 
+  // ===============================
+  // Load Course + LMS Exams
+  // ===============================
   useEffect(() => {
     const loadData = async () => {
       try {
-        // 1. Load course
-        const courseRes = await fetch(`${API_URL}/courses/${courseId}`);
+        // 1. Load course info
+        const courseRes = await fetch(
+          `http://localhost:3001/api/courses/${courseId}`
+        );
         const courseData = await courseRes.json();
+        setCourse(courseData);
 
-        // 2. Load exams for this course
-        const examRes = await fetch(`${API_URL}/exams?courseId=${courseId}`);
+        // 2. Load exams from LMS
+        const examRes = await fetch(
+          `http://localhost:3001/api/courses/${courseId}/exams`
+        );
         const examData = await examRes.json();
 
-        setCourse(courseData);
-        setExams(examData);
+        // 3. Map LMS → UI fields
+        const mappedExams = (examData.items || []).map((exam: any) => ({
+          id: exam.id,
+          title: exam.name,
+          description: exam.description || "",
+          startDate: exam.open_on,
+          endDate: exam.close_on,
+          createdAt: exam.open_on,
+          duration: exam.duration,
+          totalMarks: exam.total_point,
+          passingMarks: exam.grade_point,
+          createdBy: exam.course?.name || "LMS",
+          status: getExamStatus(exam.open_on, exam.close_on),
+        }));
+
+        setExams(mappedExams);
       } catch (error) {
         console.error("❌ API error:", error);
       }
+
       setLoading(false);
     };
+
     loadData();
   }, [courseId]);
 
+  // ===============================
+  // Status badge
+  // ===============================
   const getStatusBadge = (status: string) => {
     const badges: any = {
       upcoming: "bg-blue-100 text-blue-800",
@@ -72,6 +113,9 @@ export default function ExamListPage() {
     );
   };
 
+  // ===============================
+  // Date formatting
+  // ===============================
   const formatDate = (dateString: string) => {
     if (!dateString) return "—";
     const date = new Date(dateString);
@@ -84,6 +128,9 @@ export default function ExamListPage() {
     });
   };
 
+  // ===============================
+  // Loading UI
+  // ===============================
   if (loading)
     return (
       <div className="flex items-center justify-center min-h-screen text-gray-600">
@@ -91,6 +138,9 @@ export default function ExamListPage() {
       </div>
     );
 
+  // ===============================
+  // PAGE OUTPUT
+  // ===============================
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -110,6 +160,7 @@ export default function ExamListPage() {
                 ({course?.code || "код байхгүй"})
               </p>
             </div>
+
             <Link
               to={`/team6/courses/${courseId}/exams/create`}
               className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors font-medium"
@@ -170,6 +221,7 @@ export default function ExamListPage() {
                     <div className="text-sm text-gray-500">
                       Үүсгэсэн: {exam.createdBy} • {formatDate(exam.createdAt)}
                     </div>
+
                     <div className="flex gap-2">
                       <Link
                         to={`/team6/exams/${exam.id}/variants`}
@@ -207,6 +259,9 @@ export default function ExamListPage() {
   );
 }
 
+// -------------------------
+// InfoBox component
+// -------------------------
 const InfoBox = ({
   label,
   value,
