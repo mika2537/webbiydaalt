@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import BackButton from "../components/BackButton";
+import BackButton from "../../../components/BackButton";
 
 // API BASE URL
 const API_URL = "http://localhost:3001/api";
@@ -13,9 +13,6 @@ export default function ExamListPage() {
   const [exams, setExams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ===============================
-  // Status calculation (LMS has no status)
-  // ===============================
   function getExamStatus(open_on: string, close_on: string) {
     const now = new Date();
     const open = new Date(open_on);
@@ -26,40 +23,33 @@ export default function ExamListPage() {
     return "active";
   }
 
-  // ===============================
-  // When clicking an exam
-  // ===============================
   const handleExamClick = async (exam: any) => {
-    const variantsRes = await fetch(`${API_URL}/variants/exam/${exam.id}`);
-    const examVariants = await variantsRes.json();
+    try {
+      const variantsRes = await fetch(`${API_URL}/variants/exam/${exam.id}`);
+      const examVariants = await variantsRes.json();
 
-    const statsRes = await fetch(`${API_URL}/exams/${exam.id}/stats`);
-    const examStats = await statsRes.json();
+      localStorage.setItem("selectedExam", JSON.stringify(exam));
+      localStorage.setItem(
+        "selectedExamVariants",
+        JSON.stringify(examVariants)
+      );
 
-    localStorage.setItem("selectedExam", JSON.stringify(exam));
-    localStorage.setItem("selectedExamVariants", JSON.stringify(examVariants));
-    localStorage.setItem("selectedExamStats", JSON.stringify(examStats));
-
-    navigate(`/team6/exams/${exam.id}`);
+      navigate(`/team6/exams/${exam.id}`);
+    } catch (error) {
+      console.error("❌ Failed to load exam data:", error);
+    }
   };
 
-  // ===============================
-  // Load Course + LMS Exams
-  // ===============================
   useEffect(() => {
     const loadData = async () => {
       try {
         // 1. Load course info
-        const courseRes = await fetch(
-          `http://localhost:3001/api/courses/${course_id}`
-        );
+        const courseRes = await fetch(`${API_URL}/courses/${course_id}`);
         const courseData = await courseRes.json();
         setCourse(courseData);
 
         // 2. Load exams from LMS
-        const examRes = await fetch(
-          `http://localhost:3001/api/courses/${course_id}/exams`
-        );
+        const examRes = await fetch(`${API_URL}/courses/${course_id}/exams`);
         const examData = await examRes.json();
 
         // 3. Map LMS → UI fields

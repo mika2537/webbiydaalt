@@ -1,221 +1,203 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import BackButton from "../../../../components/BackButton";
 
-interface StudentAnswer {
-  questionId: number;
-  response: string[];
-}
+const LMS_API = "https://todu.mn/bs/lms/v1";
+const LMS_TOKEN = "ry6qY8CF-3f0mSj47ThzzQ";
 
-interface StudentExam {
-  examId: number;
-  studentId: number;
-  answers: StudentAnswer[];
-  score?: number;
-}
-
-interface Question {
-  id: number;
-  question: string;
-  options?: string[];
-  correctAnswers: string[];
-  marks: number;
-  type: string;
-  image?: string;
-}
-
-export default function CheckExamPage() {
-  const { examId, id } = useParams();
-  const API_URL = "http://localhost:3001";
+export default function StudentExamStartPage() {
+  const { exam_id, id } = useParams();
+  const navigate = useNavigate();
 
   const [exam, setExam] = useState<any>(null);
-  const [studentExam, setStudentExam] = useState<StudentExam | null>(null);
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [score, setScore] = useState(0);
+  const [student, setStudent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>("");
 
-  // ---------------------------
-  // 🔥 Backend-аас өгөгдөл татах
-  // ---------------------------
   useEffect(() => {
     async function load() {
       try {
-        // 1. Шалгалтын мэдээлэл
-        const examRes = await fetch(`${API_URL}/exams/${examId}`);
+        const examRes = await fetch(`${LMS_API}/exams/${exam_id}`, {
+          headers: {
+            Authorization: `Bearer ${LMS_TOKEN}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        });
+
+        if (!examRes.ok) throw new Error("Шалгалт олдсонгүй");
+
         const examData = await examRes.json();
         setExam(examData);
 
-        // 2. Сурагчийн шалгалтын өгөгдөл
-        const studentRes = await fetch(`${API_URL}/students/${examId}/${id}`);
-        const studentData = await studentRes.json();
-        setStudentExam(studentData);
-
-        // 3. Шалгалтын бүх асуулт
-        const questionsRes = await fetch(
-          `${API_URL}/exams/${examId}/questions`
-        );
-        const questionsData = await questionsRes.json();
-        setQuestions(questionsData);
-
-        // 4. Дүн тооцоолох
-        const correctCount = questionsData.reduce(
-          (sum: number, q: Question) => {
-            const studentAnswer = studentData.answers?.find(
-              (a: StudentAnswer) => a.questionId === q.id
-            )?.response;
-
-            const isCorrect =
-              studentAnswer &&
-              q.correctAnswers.length === studentAnswer.length &&
-              q.correctAnswers.every((ans) => studentAnswer.includes(ans));
-
-            return isCorrect ? sum + 1 : sum;
-          },
-          0
+        const courseRes = await fetch(
+          `${LMS_API}/courses/${examData.course_id}/users`,
+          {
+            headers: {
+              Authorization: `Bearer ${LMS_TOKEN}`,
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+          }
         );
 
-        setScore(
-          Math.round(
-            (correctCount / questionsData.length) * examData.totalMarks
-          )
-        );
+        if (courseRes.ok) {
+          const courseData = await courseRes.json();
+          const foundStudent = courseData.items?.find(
+            (item: any) => item.user_id === parseInt(id || "0")
+          );
+          setStudent(foundStudent);
+        }
 
         setLoading(false);
-      } catch (err) {
+      } catch (err: any) {
         console.error("API error:", err);
+        setError(err.message || "Алдаа гарлаа");
         setLoading(false);
       }
     }
 
     load();
-  }, [examId, id]);
+  }, [exam_id, id]);
 
-  // -------------------------
-  // UI Rendering
-  // -------------------------
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "—";
+    const date = new Date(dateString);
+    return date.toLocaleString("mn-MN", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
-  if (loading)
+  const getExamStatus = () => {
+    if (!exam) return "unknown";
+    const now = new Date();
+    const open = new Date(exam.open_on);
+    const close = new Date(exam.close_on);
+
+    if (now < open) return "upcoming";
+    if (now > close) return "closed";
+    return "active";
+  };
+
+  const handleStartExam = () => {
+    navigate(`/team6/exams/${exam_id}/students/${id}/take`);
+  };
+
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-600">
-        ⏳ Ачаалж байна...
+        ⏳ Ачааллаж байна...
       </div>
     );
+  }
 
-  if (!exam)
+  if (error || !exam) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-gray-600">
-        ❌ Шалгалтын мэдээлэл олдсонгүй.
-        <Link to="/team6/student" className="mt-4 underline">
+        <div className="text-6xl mb-4">❌</div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          {error || "Шалгалт олдсонгүй"}
+        </h2>
+        <Link to="/team6" className="mt-4 underline">
           Буцах
         </Link>
       </div>
     );
+  }
+
+  const status = getExamStatus();
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-sm p-8">
-        {/* Header */}
-        <div className="flex justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">{exam.title}</h1>
-            <p className="text-gray-600">{exam.description}</p>
+      <div className="max-w-4xl mx-auto">
+        <BackButton variant="link" className="mb-4" />
+
+        <div className="bg-white rounded-lg shadow-sm p-8">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              {exam.name}
+            </h1>
+            {exam.description && (
+              <p className="text-gray-600">{exam.description}</p>
+            )}
           </div>
-          <BackButton />
-        </div>
 
-        {/* Summary */}
-        <div className="mb-6 p-4 bg-blue-50 rounded-lg border flex justify-between">
-          <div>
-            <h2 className="text-lg font-semibold">🎯 Таны дүн</h2>
-            <p>
-              Нийт оноо: {score}/{exam.totalMarks}
-            </p>
+          {student && (
+            <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-2">
+                Оюутны мэдээлэл
+              </h3>
+              <p className="text-gray-700">
+                <span className="font-medium">Нэр:</span>{" "}
+                {student.user?.last_name} {student.user?.first_name}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-medium">Код:</span>{" "}
+                {student.user?.username}
+              </p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <InfoBox label="Нээх цаг" value={formatDate(exam.open_on)} />
+            <InfoBox label="Хаах цаг" value={formatDate(exam.close_on)} />
+            <InfoBox label="Хугацаа" value={`${exam.duration} минут`} />
+            <InfoBox label="Нийт оноо" value={exam.total_point} />
+            <InfoBox label="Тэнцэх оноо" value={exam.grade_point} />
+            <InfoBox label="Оролдлогын тоо" value={exam.max_attempt} />
           </div>
-          <div className="text-3xl font-bold">
-            {((score / exam.totalMarks) * 100).toFixed(0)}%
-          </div>
-        </div>
 
-        {/* Questions */}
-        <div className="space-y-6">
-          {questions.map((q, i) => {
-            const studentAnswer =
-              studentExam?.answers?.find((a) => a.questionId === q.id)
-                ?.response || [];
-
-            const isCorrect =
-              studentAnswer.length > 0 &&
-              q.correctAnswers.length === studentAnswer.length &&
-              q.correctAnswers.every((ans) => studentAnswer.includes(ans));
-
-            return (
-              <div
-                key={q.id}
-                className={`p-5 rounded-lg border-2
-                ${
-                  isCorrect
-                    ? "border-green-300 bg-green-50"
-                    : "border-red-300 bg-red-50"
-                }`}
-              >
-                <h3 className="font-semibold mb-2">
-                  {i + 1}. {q.question}
-                </h3>
-
-                {q.image && (
-                  <img src={q.image} className="w-64 rounded border mb-3" />
-                )}
-
-                {q.options?.length && (
-                  <ul className="list-disc ml-5">
-                    {q.options!.map((opt, idx) => (
-                      <li
-                        key={idx}
-                        className={
-                          studentAnswer.includes(opt)
-                            ? isCorrect
-                              ? "text-green-700 font-bold"
-                              : "text-red-700 font-bold"
-                            : ""
-                        }
-                      >
-                        {opt}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                <div className="mt-2 text-sm">
-                  <p>
-                    🟢 Зөв:{" "}
-                    <span className="font-semibold">
-                      {q.correctAnswers.join(", ")}
-                    </span>
-                  </p>
-                  <p>
-                    🔵 Таны хариулт:{" "}
-                    <span className="font-semibold">
-                      {studentAnswer.length > 0
-                        ? studentAnswer.join(", ")
-                        : "—"}
-                    </span>
+          <div className="border-t pt-6">
+            {status === "active" ? (
+              <div className="text-center">
+                <div className="mb-6 p-4 bg-green-50 rounded-lg">
+                  <div className="text-4xl mb-2">✅</div>
+                  <h3 className="text-xl font-bold text-green-900 mb-2">
+                    Шалгалт эхлэхэд бэлэн
+                  </h3>
+                  <p className="text-green-700">
+                    Та {exam.duration} минутын хугацаатай шалгалт өгөх болно
                   </p>
                 </div>
-              </div>
-            );
-          })}
-        </div>
 
-        {/* Footer */}
-        <div className="mt-10 flex justify-center">
-          <Link
-            to="/team6/student"
-            className="px-6 py-3 bg-black text-white rounded-lg"
-          >
-            Буцах
-          </Link>
+                <button
+                  onClick={handleStartExam}
+                  className="px-8 py-4 bg-black text-white text-lg font-semibold rounded-lg hover:bg-gray-800"
+                >
+                  Шалгалт эхлүүлэх →
+                </button>
+              </div>
+            ) : status === "closed" ? (
+              <div className="text-center p-6 bg-gray-100 rounded-lg">
+                <div className="text-4xl mb-3">🔒</div>
+                <h3 className="text-xl font-bold">Шалгалт дууссан</h3>
+              </div>
+            ) : (
+              <div className="text-center p-6 bg-blue-50 rounded-lg">
+                <div className="text-4xl mb-3">⏰</div>
+                <h3 className="text-xl font-bold">Шалгалт удахгүй эхэлнэ</h3>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
+const InfoBox = ({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number;
+}) => (
+  <div className="bg-gray-50 p-4 rounded-lg">
+    <div className="text-sm text-gray-600 mb-1">{label}</div>
+    <div className="text-lg font-semibold text-gray-900">{value}</div>
+  </div>
+);

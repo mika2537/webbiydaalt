@@ -6,7 +6,7 @@ const API_URL = "http://localhost:3001/api";
 
 interface Variant {
   id: string;
-  examId: string;
+  exam_id: string;
   name: string;
   description?: string;
   totalQuestions?: number;
@@ -14,14 +14,14 @@ interface Variant {
 }
 
 export default function VariantListPage() {
-  const { examId } = useParams();
+  const { exam_id } = useParams();
   const [variants, setVariants] = useState<Variant[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadVariants = async () => {
       try {
-        const res = await fetch(`${API_URL}/variants/${examId}`);
+        const res = await fetch(`${API_URL}/variants/${exam_id}`);
         const data = await res.json();
         setVariants(data);
       } catch (err) {
@@ -31,7 +31,7 @@ export default function VariantListPage() {
       }
     };
     loadVariants();
-  }, [examId]);
+  }, [exam_id]);
 
   if (loading) {
     return (
@@ -50,7 +50,7 @@ export default function VariantListPage() {
             Шалгалтын вариантын жагсаалт
           </h1>
           <Link
-            to={`/team6/exams/${examId}/variants/create`}
+            to={`/team6/exams/${exam_id}/variants/create`}
             className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition text-sm font-medium"
           >
             + Шинэ вариант
@@ -79,7 +79,7 @@ export default function VariantListPage() {
                     <td className="border p-2 text-center">{i + 1}</td>
                     <td className="border p-2 font-medium text-gray-900">
                       <Link
-                        to={`/team6/exams/${examId}/variants/${v.id}`}
+                        to={`/team6/exams/${exam_id}/variants/${v.id}`}
                         className="hover:underline"
                       >
                         {v.name}

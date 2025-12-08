@@ -14,18 +14,18 @@ export async function createExam(courseId, data) {
   return exam;
 }
 
-export async function getExam(examId) {
+export async function getExam(exam_id) {
   return Exams.find((x) => x.id === examId);
 }
 
-export async function updateExam(examId, data) {
+export async function updateExam(exam_id, data) {
   const index = Exams.findIndex((x) => x.id === examId);
   if (index === -1) return null;
   Exams[index] = { ...Exams[index], ...data };
   return Exams[index];
 }
 
-export async function getExamReport(examId) {
+export async function getExamReport(exam_id) {
   return {
     examId,
     stats: {

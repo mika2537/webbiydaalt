@@ -7,7 +7,7 @@ const API_URL = "http://localhost:3001/api";
 import BackButton from "../../../components/BackButton";
 
 export default function ExamReportPage() {
-  const { examId } = useParams();
+  const { exam_id } = useParams();
   const [exam, setExam] = useState<any>(null);
   const [stats, setStats] = useState<any>(null);
   const [studentResults, setStudentResults] = useState<any[]>([]);
@@ -16,13 +16,13 @@ export default function ExamReportPage() {
   useEffect(() => {
     const loadReport = async () => {
       try {
-        const examRes = await fetch(`${API_URL}/exams/${examId}`);
+        const examRes = await fetch(`${API_URL}/exams/${exam_id}`);
         const examData = await examRes.json();
 
-        const statsRes = await fetch(`${API_URL}/exams/${examId}/stats`);
+        const statsRes = await fetch(`${API_URL}/exams/${exam_id}/stats`);
         const statsData = await statsRes.json();
 
-        const resultsRes = await fetch(`${API_URL}/exams/${examId}/students`);
+        const resultsRes = await fetch(`${API_URL}/exams/${exam_id}/students`);
         const resultsData = await resultsRes.json();
 
         setExam(examData);
@@ -35,7 +35,7 @@ export default function ExamReportPage() {
     };
 
     loadReport();
-  }, [examId]);
+  }, [exam_id]);
 
   const getStatusBadge = (status: string) => {
     const badges: any = {

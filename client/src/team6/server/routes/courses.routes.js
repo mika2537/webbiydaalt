@@ -1,28 +1,30 @@
-import { Router } from "express";
+import express from "express";
 import axios from "axios";
 
-const router = Router();
+const router = express.Router();
 
-// GET course info from LMS
-router.get("/:courseId", async (req, res) => {
-  const { courseId } = req.params;
+const LMS_API = "https://todu.mn/bs/lms/v1";
+const LMS_TOKEN = "ry6qY8CF-3f0mSj47ThzzQ";
 
+// GET /api/courses/:course_id - Get course details
+router.get("/:course_id", async (req, res) => {
   try {
-    const response = await axios.get(
-      `https://todu.mn/bs/lms/v1/courses/${courseId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.LMS_TOKEN}`,
-        },
-      }
-    );
+    const { course_id } = req.params;
+
+    const response = await axios.get(`${LMS_API}/courses/${course_id}`, {
+      headers: {
+        Authorization: `Bearer ${LMS_TOKEN}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    });
 
     res.json(response.data);
-  } catch (err) {
-    console.error("Course Error:", err.response?.data || err.message);
-    res.status(500).json({
-      error: "Failed to load course",
-      details: err.response?.data || err.message,
+  } catch (error) {
+    console.error("Error fetching course:", error.message);
+    res.status(error.response?.status || 500).json({
+      error: error.message,
+      details: error.response?.data,
     });
   }
 });

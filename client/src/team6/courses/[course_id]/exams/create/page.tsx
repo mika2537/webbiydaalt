@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import BackButton from "../../components/BackButton";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import BackButton from "../../../../components/BackButton";
 
 const API_URL = "http://localhost:3001/api";
 
@@ -47,7 +47,7 @@ interface FormData {
 
 export default function CreateExamPage() {
   const navigate = useNavigate();
-  const course_id = 1;
+  const { course_id } = useParams();
 
   const [course, setCourse] = useState<Course | null>(null);
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -90,6 +90,7 @@ export default function CreateExamPage() {
         const bankRes = await fetch(`${API_URL}/questions/course/${course_id}`);
         const bankData = await bankRes.json();
         setQuestionBank(Array.isArray(bankData) ? bankData : []);
+
         const levelRes = await fetch(`${API_URL}/question-levels`);
         const levelData = await levelRes.json();
         setLevels(levelData.items || []);
@@ -100,7 +101,7 @@ export default function CreateExamPage() {
     };
 
     loadData();
-  }, []);
+  }, [course_id]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -150,7 +151,7 @@ export default function CreateExamPage() {
     }
 
     const newExam = {
-      course_id: course_id,
+      course_id: Number(course_id),
       name: formData.name,
       description: formData.description,
       total_point: formData.total_point,
@@ -175,7 +176,7 @@ export default function CreateExamPage() {
       if (!res.ok) throw new Error("Failed to create exam");
 
       alert("Шалгалт амжилттай үүсгэлээ!");
-      navigate("/team6/courses/1/exams");
+      navigate(`/team6/courses/${course_id}/exams`);
     } catch (error) {
       console.error("Create error:", error);
       alert("Алдаа гарлаа!");
@@ -313,6 +314,7 @@ export default function CreateExamPage() {
               <h2 className="text-xl font-bold">
                 Асуултын банкнаас сэдвээр сонгох
                 <button
+                  type="button"
                   onClick={() =>
                     navigate(`/team6/courses/${course_id}/questions`)
                   }
@@ -468,7 +470,7 @@ export default function CreateExamPage() {
             </button>
 
             <Link
-              to="/team6/exams"
+              to={`/team6/courses/${course_id}/exams`}
               className="flex-1 py-4 text-center border rounded-lg hover:bg-gray-50"
             >
               Болих
