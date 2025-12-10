@@ -7,6 +7,7 @@ const API_URL = "http://localhost:3001/api";
 
 export default function ExamListPage() {
   const navigate = useNavigate();
+  // const { course_id } = useParams();
   const { course_id } = useParams();
 
   const [course, setCourse] = useState<any>(null);

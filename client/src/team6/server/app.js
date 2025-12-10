@@ -41,15 +41,13 @@ import lmsProxyRoutes from "./routes/lms.proxy.routes.js";
 // ----------------------
 
 // LMS Proxy – FORWARD requests to TODU API
-app.use("/api/lms", lmsProxyRoutes);
-
-// Course routes
 app.use("/api/courses", coursesRoutes);
-
 app.use("/api/exams", examsRoutes);
 app.use("/api/variants", variantsRoutes);
 app.use("/api/students", studentsRoutes);
 
+// LMS proxy ONLY for /api/lms/**
+app.use("/api/lms", lmsProxyRoutes);
 // ----------------------
 // START SERVER
 // ----------------------

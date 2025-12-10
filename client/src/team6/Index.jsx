@@ -32,9 +32,9 @@ export default function Index() {
       <Route index element={<Team6Home />} />
 
       {/* COURSE EXAMS */}
-      <Route path="courses/:courseId/exams" element={<ExamsPage />} />
+      <Route path="courses/:course_id/exams" element={<ExamsPage />} />
       <Route
-        path="courses/:courseId/exams/create"
+        path="courses/:course_id/exams/create"
         element={<CreateExamPage />}
       />
 
