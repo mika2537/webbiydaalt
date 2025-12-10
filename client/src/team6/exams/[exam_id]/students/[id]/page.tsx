@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import BackButton from "../../../../components/BackButton";
 
 const LMS_API = "https://todu.mn/bs/lms/v1";
-const LMS_TOKEN = "ry6qY8CF-3f0mSj47ThzzQ";
+const LMS_TOKEN = "m9ewS9t9mMzr3np2pZQVeQ";
 
 export default function StudentExamStartPage() {
   const { exam_id, id } = useParams();

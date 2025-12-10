@@ -4,7 +4,7 @@ import axios from "axios";
 const router = express.Router();
 
 const LMS_API = "https://todu.mn/bs/lms/v1";
-const LMS_TOKEN = "ry6qY8CF-3f0mSj47ThzzQ";
+const LMS_TOKEN = process.env.LMS_TOKEN;
 
 // GET /api/courses/:course_id - Get course details
 router.get("/:course_id", async (req, res) => {

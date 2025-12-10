@@ -95,7 +95,7 @@ export default function StudentDetailPage() {
               </div>
 
               <Link
-                to={`/team6/exams/${exam.id}/students/${student_id}`}
+                to={`/team6/exams/${exam.id}/students/${student_id}/take`}
                 className="px-5 py-3 bg-black text-white rounded-lg hover:bg-gray-800"
               >
                 ▶ Шалгалт эхлүүлэх

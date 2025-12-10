@@ -22,6 +22,7 @@ app.use((req, res, next) => {
   console.log("➡️ REQUEST:", req.method, req.url);
   console.log("   BODY:", req.body);
   next();
+  console.log("TOKEN=", process.env.LMS_TOKEN);
 });
 
 // ----------------------
@@ -31,9 +32,6 @@ import examsRoutes from "./routes/exams.routes.js";
 import variantsRoutes from "./routes/variants.routes.js";
 import studentsRoutes from "./routes/students.routes.js";
 import coursesRoutes from "./routes/courses.routes.js";
-
-// ❌ REMOVE OLD LMS FILE
-// import lmsRoutes from "./routes/lms.routes.js";
 
 // ✅ ONLY USE NEW LMS PROXY
 import lmsProxyRoutes from "./routes/lms.proxy.routes.js";
