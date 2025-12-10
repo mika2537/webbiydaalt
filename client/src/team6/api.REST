@@ -1,0 +1,45 @@
+GET https://todu.mn/bs/lms/v1/courses/204/users
+Authorization: Bearer ry6qY8CF-3f0mSj47ThzzQ
+Content-Type: application/json
+Accept: application/json
+
+
+### 541
+
+
+###
+GET https://todu.mn/bs/lms/v1/exams/200/questions
+Authorization: Bearer rAlB5hsXnbetY2j3zDPB1g
+Content-Type: application/json     
+Accept: application/json
+
+###
+
+GET https://todu.mn/bs/lms/v1/exams/200
+Authorization: Bearer rAlB5hsXnbetY2j3zDPB1g
+Content-Type: application/json
+Accept: application/json
+
+
+###
+GET https://todu.mn/bs/lms/v1/exams/200/students/580
+Authorization: Bearer rAlB5hsXnbetY2j3zDPB1g
+Content-Type: application/json
+Accept: application/json
+
+###
+POST https://todu.mn/bs/lms/v1/token/email
+Content-Type: application/json
+Accept: application/json
+
+{
+    "email": "b222270827@must.edu.mn",
+    "password": "123"
+}
+
+###
+GET https://todu.mn/bs/lms/v1/users/me
+Authorization: Bearer ry6qY8CF-3f0mSj47ThzzQ
+Content-Type: application/json
+Accept: application/json
+

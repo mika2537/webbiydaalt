@@ -1,31 +1,28 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import BackButton from "../../components/BackButton";
+import BackButton from "../../../../components/BackButton";
 
 const API_URL = "http://localhost:3001/api";
 
-// ---------- TYPES ----------
+// Types
 interface Course {
   id: number;
   name: string;
+  code: string;
+  description?: string;
 }
 
-interface LMSQuestionLevel {
+interface Topic {
   id: number;
-<<<<<<< HEAD
-=======
   course_id: number;
->>>>>>> origin/main
   name: string;
-  priority: number;
+  description: string;
 }
 
-interface LMSQuestionType {
+type DifficultyLevel = "easy" | "medium" | "hard";
+
+interface Question {
   id: number;
-<<<<<<< HEAD
-  name: string;
-  priority: number;
-=======
   course_id: number;
   topicId: number;
   question: string;
@@ -46,45 +43,26 @@ interface FormData {
   total_point: number;
   grade_point: number;
   max_attempt: number;
->>>>>>> origin/main
 }
 
 export default function CreateExamPage() {
   const navigate = useNavigate();
-  const { courseId } = useParams(); // dynamic
-  const cId = Number(courseId);
+  const { course_id } = useParams();
 
   const [course, setCourse] = useState<Course | null>(null);
-  const [levels, setLevels] = useState<LMSQuestionLevel[]>([]);
-  const [types, setTypes] = useState<LMSQuestionType[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [questionBank, setQuestionBank] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [levels, setLevels] = useState<any[]>([]);
 
-<<<<<<< HEAD
-  const [selectedLevels, setSelectedLevels] = useState<Record<number, number>>(
-    {}
-  );
-  const [selectedTypes, setSelectedTypes] = useState<Record<number, number>>(
-    {}
-  );
-
-  const [formData, setFormData] = useState({
-    title: "",
-=======
   const [formData, setFormData] = useState<FormData>({
     name: "",
->>>>>>> origin/main
     description: "",
     openDate: "",
     openTime: "",
     endDate: "",
     endTime: "",
     duration: 60,
-<<<<<<< HEAD
-    totalMarks: 100,
-    passingMarks: 30,
-  });
-=======
     total_point: 100,
     grade_point: 50,
     max_attempt: 1,
@@ -97,58 +75,51 @@ export default function CreateExamPage() {
   const [selectedDifficulties, setSelectedDifficulties] = useState<
     Record<string, number>
   >({});
->>>>>>> origin/main
 
-  // ---------- LOAD DATA ----------
   useEffect(() => {
-    const load = async () => {
+    const loadData = async () => {
       try {
-        const cRes = await fetch(`${API_URL}/courses/${cId}`);
-        setCourse(await cRes.json());
+        const courseRes = await fetch(`${API_URL}/courses/${course_id}`);
+        const courseData = await courseRes.json();
+        setCourse(courseData);
 
-        const lvlRes = await fetch("https://todu.mn/bs/lms/v1/question-levels");
-        const lvlJson = await lvlRes.json();
-        setLevels(lvlJson.items || []);
+        const topicRes = await fetch(`${API_URL}/topics/course/${course_id}`);
+        const topicsData = await topicRes.json();
+        setTopics(Array.isArray(topicsData) ? topicsData : []);
 
-<<<<<<< HEAD
-        const typeRes = await fetch("https://todu.mn/bs/lms/v1/question-types");
-        const typeJson = await typeRes.json();
-        setTypes(typeJson.items || []);
-      } catch (e) {
-        console.error("LOAD ERROR:", e);
-=======
         const bankRes = await fetch(`${API_URL}/questions/course/${course_id}`);
         const bankData = await bankRes.json();
         setQuestionBank(Array.isArray(bankData) ? bankData : []);
+
         const levelRes = await fetch(`${API_URL}/question-levels`);
         const levelData = await levelRes.json();
         setLevels(levelData.items || []);
       } catch (error) {
         console.error("API Error:", error);
->>>>>>> origin/main
       }
       setLoading(false);
     };
-    load();
-  }, [cId]);
 
-  // ---------- HANDLERS ----------
-  const handleChange = (e) => {
+    loadData();
+  }, [course_id]);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData((p) => ({ ...p, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const totalSelected =
-    Object.values(selectedLevels).reduce((a, b) => a + b, 0) +
-    Object.values(selectedTypes).reduce((a, b) => a + b, 0);
+  const handleTopicCountChange = (topicId: number, count: string) => {
+    const numCount = parseInt(count) || 0;
+    setSelectedTopics((prev) => {
+      const updated = { ...prev };
+      if (numCount === 0) delete updated[topicId];
+      else updated[topicId] = numCount;
+      return updated;
+    });
+  };
 
-<<<<<<< HEAD
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!formData.title.trim()) {
-      alert("Нэр оруулна уу");
-=======
   const totalQuestions = Object.values(selectedTopics).reduce(
     (sum, count) => sum + count,
     0
@@ -171,40 +142,16 @@ export default function CreateExamPage() {
 
     if (!formData.name.trim()) {
       alert("Нэр оруулна уу!");
->>>>>>> origin/main
       return;
     }
 
-    if (totalSelected === 0) {
-      alert("Ядаж 1 асуулт сонгоно уу.");
+    if (totalQuestions === 0 && totalDifficultyQuestions === 0) {
+      alert("1 асуулт заавал сонгоно!");
       return;
     }
 
-<<<<<<< HEAD
-    const body = {
-      name: formData.title,
-      description: formData.description,
-
-      open_on: `${formData.startDate}T${formData.startTime}:00`,
-      close_on: `${formData.endDate}T${formData.endTime}:00`,
-      end_on: `${formData.endDate}T${formData.endTime}:00`,
-
-      duration: String(formData.duration),
-      total_point: String(formData.totalMarks),
-      grade_point: String(formData.passingMarks),
-      max_attempt: "1",
-      point_expression: "",
-
-      courseId: cId,
-
-      levels: selectedLevels,
-      types: selectedTypes,
-
-      totalQuestions: totalSelected,
-      status: "upcoming",
-=======
     const newExam = {
-      course_id: course_id,
+      course_id: Number(course_id),
       name: formData.name,
       description: formData.description,
       total_point: formData.total_point,
@@ -217,59 +164,48 @@ export default function CreateExamPage() {
       selectedTopics: selectedTopicsList,
       selectedDifficulties,
       totalQuestions: totalQuestions + totalDifficultyQuestions,
->>>>>>> origin/main
     };
 
     try {
       const res = await fetch(`${API_URL}/exams`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(newExam),
       });
 
-      if (!res.ok) throw new Error("FAILED");
+      if (!res.ok) throw new Error("Failed to create exam");
 
-      alert("Шалгалт амжилттай үүслээ!");
-      navigate(`/team6/courses/${cId}/exams`);
-    } catch (err) {
-      console.error("CREATE ERROR:", err);
+      alert("Шалгалт амжилттай үүсгэлээ!");
+      navigate(`/team6/courses/${course_id}/exams`);
+    } catch (error) {
+      console.error("Create error:", error);
       alert("Алдаа гарлаа!");
     }
   };
 
-  if (loading)
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         Ачаалж байна...
       </div>
     );
+  }
 
-  // ---------- UI ----------
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-5xl mx-auto">
-<<<<<<< HEAD
-        <BackButton variant="link" className="mb-4" />
-=======
         <div className="mb-8">
           <BackButton variant="link" className="mb-4" />
 
           <h1 className="text-3xl font-bold">Шинэ шалгалт үүсгэх</h1>
           <p className="text-gray-600">{course?.name}</p>
         </div>
->>>>>>> origin/main
 
-        <h1 className="text-3xl font-bold">Шинэ шалгалт үүсгэх</h1>
-        <p className="text-gray-600">{course?.name}</p>
-
-        <form onSubmit={handleSubmit} className="space-y-6 mt-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* BASIC INFO */}
-          <div className="bg-white p-6 rounded shadow space-y-4">
-            <h2 className="font-bold text-xl">Үндсэн мэдээлэл</h2>
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h2 className="text-xl font-bold mb-6">Үндсэн мэдээлэл</h2>
 
-<<<<<<< HEAD
-            <Input label="Шалгалтын нэр" name="title" onChange={handleChange} />
-=======
             <div className="space-y-4">
               <InputField
                 label="Шалгалтын нэр *"
@@ -278,28 +214,13 @@ export default function CreateExamPage() {
                 onChange={handleChange}
                 required
               />
->>>>>>> origin/main
 
-            <TextArea
-              label="Тайлбар"
-              name="description"
-              onChange={handleChange}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                label="Эхлэх огноо"
-                type="date"
-                name="startDate"
+              <TextAreaField
+                label="Тайлбар"
+                name="description"
+                value={formData.description}
                 onChange={handleChange}
               />
-<<<<<<< HEAD
-              <Input
-                label="Эхлэх цаг"
-                type="time"
-                name="startTime"
-                onChange={handleChange}
-=======
 
               {/* OPEN DATE AND TIME */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -372,7 +293,6 @@ export default function CreateExamPage() {
                 onChange={handleChange}
                 min={1}
                 required
->>>>>>> origin/main
               />
 
               <InputField
@@ -386,73 +306,15 @@ export default function CreateExamPage() {
                 placeholder="Оюутан хэдэн удаа шалгалт өгч болох"
               />
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                label="Дуусах огноо"
-                type="date"
-                name="endDate"
-                onChange={handleChange}
-              />
-              <Input
-                label="Дуусах цаг"
-                type="time"
-                name="endTime"
-                onChange={handleChange}
-              />
-            </div>
-
-            <Input
-              label="Хугацаа (минут)"
-              type="number"
-              name="duration"
-              onChange={handleChange}
-            />
-
-            <Input
-              label="Нийт оноо"
-              type="number"
-              name="totalMarks"
-              onChange={handleChange}
-            />
-            <Input
-              label="Тэнцэх оноо"
-              type="number"
-              name="passingMarks"
-              onChange={handleChange}
-            />
           </div>
 
-<<<<<<< HEAD
-          {/* BLOOM LEVEL */}
-          <div className="bg-white p-6 rounded shadow space-y-4">
-            <h2 className="font-bold text-xl">Асуултын түвшин (Bloom Level)</h2>
-
-            {levels.map((lvl) => (
-              <div
-                key={lvl.id}
-                className="flex justify-between border p-3 rounded"
-              >
-                <span>{lvl.name}</span>
-                <input
-                  type="number"
-                  min={0}
-                  value={selectedLevels[lvl.id] || 0}
-                  onChange={(e) =>
-                    setSelectedLevels((p) => ({
-                      ...p,
-                      [lvl.id]: Number(e.target.value),
-                    }))
-                  }
-                  className="border p-2 w-24"
-                />
-=======
           {/* QUESTION SELECTION BY TOPIC */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex justify-between mb-6">
               <h2 className="text-xl font-bold">
                 Асуултын банкнаас сэдвээр сонгох
                 <button
+                  type="button"
                   onClick={() =>
                     navigate(`/team6/courses/${course_id}/questions`)
                   }
@@ -503,35 +365,10 @@ export default function CreateExamPage() {
                 <p className="font-semibold">
                   Сэдвээр сонгосон нийт асуулт: {totalQuestions}
                 </p>
->>>>>>> origin/main
               </div>
-            ))}
+            )}
           </div>
 
-<<<<<<< HEAD
-          {/* QUESTION TYPES */}
-          <div className="bg-white p-6 rounded shadow space-y-4">
-            <h2 className="font-bold text-xl">Асуултын төрөл</h2>
-
-            {types.map((t) => (
-              <div
-                key={t.id}
-                className="flex justify-between border p-3 rounded"
-              >
-                <span>{t.name}</span>
-                <input
-                  type="number"
-                  min={0}
-                  value={selectedTypes[t.id] || 0}
-                  onChange={(e) =>
-                    setSelectedTypes((prev) => ({
-                      ...prev,
-                      [t.id]: Number(e.target.value),
-                    }))
-                  }
-                  className="border p-2 w-24"
-                />
-=======
           {/* QUESTION SELECTION BY DIFFICULTY */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-xl font-bold mb-4">
@@ -603,17 +440,42 @@ export default function CreateExamPage() {
                 <p className="font-semibold">
                   Хүндээр сонгосон нийт асуулт: {totalDifficultyQuestions}
                 </p>
->>>>>>> origin/main
               </div>
-            ))}
+            )}
           </div>
 
-          <button
-            type="submit"
-            className="bg-black text-white p-4 rounded w-full mt-4"
-          >
-            Шалгалт үүсгэх
-          </button>
+          {/* TOTAL SUMMARY */}
+          {(totalQuestions > 0 || totalDifficultyQuestions > 0) && (
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-bold mb-4">Нийт дүн</h2>
+              <div className="p-4 bg-purple-50 border-2 border-purple-200 rounded-lg">
+                <p className="text-lg font-bold">
+                  Бүх асуултын нийлбэр:{" "}
+                  {totalQuestions + totalDifficultyQuestions}
+                </p>
+                <div className="mt-2 text-sm text-gray-700">
+                  <p>• Сэдвээр сонгосон: {totalQuestions}</p>
+                  <p>• Хүндээр сонгосон: {totalDifficultyQuestions}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              className="flex-1 py-4 bg-black text-white rounded-lg hover:bg-gray-800"
+            >
+              Шалгалт үүсгэх
+            </button>
+
+            <Link
+              to={`/team6/courses/${course_id}/exams`}
+              className="flex-1 py-4 text-center border rounded-lg hover:bg-gray-50"
+            >
+              Болих
+            </Link>
+          </div>
         </form>
       </div>
     </div>
@@ -621,20 +483,26 @@ export default function CreateExamPage() {
 }
 
 // COMPONENTS
-function Input(props) {
-  return (
-    <div>
-      <label className="block mb-1 text-sm">{props.label}</label>
-      <input {...props} className="w-full border p-3 rounded" />
-    </div>
-  );
-}
+const InputField = ({
+  label,
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) => (
+  <div>
+    <label className="block text-sm font-medium mb-1">{label}</label>
+    <input {...props} className="w-full px-4 py-3 border-2 rounded-lg" />
+  </div>
+);
 
-function TextArea(props) {
-  return (
-    <div>
-      <label className="block mb-1 text-sm">{props.label}</label>
-      <textarea {...props} rows={3} className="w-full border p-3 rounded" />
-    </div>
-  );
-}
+const TextAreaField = ({
+  label,
+  ...props
+}: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string }) => (
+  <div>
+    <label className="block text-sm font-medium mb-1">{label}</label>
+    <textarea
+      {...props}
+      rows={3}
+      className="w-full px-4 py-3 border-2 rounded-lg"
+    />
+  </div>
+);

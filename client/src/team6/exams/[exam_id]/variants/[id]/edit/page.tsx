@@ -6,7 +6,7 @@ const API_URL = "http://localhost:3001/api";
 
 interface Variant {
   id: number;
-  examId: number;
+  exam_id: number;
   name: string;
   description: string;
   questionIds: number[];
@@ -16,7 +16,7 @@ interface Variant {
 
 export default function EditVariantPage() {
   const navigate = useNavigate();
-  const { examId, id } = useParams();
+  const { exam_id, id } = useParams();
   const variantId = id;
 
   const [variant, setVariant] = useState<Variant | null>(null);
@@ -31,7 +31,7 @@ export default function EditVariantPage() {
   useEffect(() => {
     const loadVariant = async () => {
       try {
-        const res = await fetch(`${API_URL}/variants/${examId}/${variantId}`);
+        const res = await fetch(`${API_URL}/variants/${exam_id}/${variantId}`);
         const data = await res.json();
         setVariant(data);
         setForm({
@@ -64,7 +64,7 @@ export default function EditVariantPage() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/variants/${examId}/${variantId}`, {
+      const res = await fetch(`${API_URL}/variants/${exam_id}/${variantId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -72,7 +72,7 @@ export default function EditVariantPage() {
 
       setMessage("Амжилттай шинэчлэгдлээ!");
       setTimeout(() => {
-        navigate(`/team6/exams/${examId}/variants/${variantId}`);
+        navigate(`/team6/exams/${exam_id}/variants/${variantId}`);
       }, 1200);
     } catch (error) {
       console.error("❌ Вариант засахад алдаа:", error);
@@ -100,7 +100,7 @@ export default function EditVariantPage() {
     <div className="min-h-screen bg-gray-50 p-6 flex justify-center items-center">
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
         <Link
-          to={`/team6/exams/${examId}/variants/${variantId}`}
+          to={`/team6/exams/${exam_id}/variants/${variantId}`}
           className="text-gray-600 hover:text-gray-900 inline-block mb-4"
         >
           ← Буцах
@@ -157,7 +157,7 @@ export default function EditVariantPage() {
 
         <button
           onClick={() =>
-            navigate(`/team6/exams/${examId}/variants/${variantId}`)
+            navigate(`/team6/exams/${exam_id}/variants/${variantId}`)
           }
           className="mt-6 w-full py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition font-medium"
         >

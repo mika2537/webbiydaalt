@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 const API_URL = "http://localhost:3001/api";
 
 export default function ExamDetailPage() {
-  const { examId } = useParams();
+  const { exam_id } = useParams();
   const [exam, setExam] = useState<any>(null);
   const [variants, setVariants] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
@@ -14,13 +14,20 @@ export default function ExamDetailPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const examRes = await fetch(`${API_URL}/exams/${examId}`);
+        const examRes = await fetch(`${API_URL}/exams/${exam_id}`);
         const examData = await examRes.json();
 
+<<<<<<< HEAD
         const variantsRes = await fetch(`${API_URL}/exam/${examId}/variants`);
         const variantsData = await variantsRes.json();
 
         const statsRes = await fetch(`${API_URL}/exam/${examId}/stats`);
+=======
+        const variantsRes = await fetch(`${API_URL}/variants/exam/${exam_id}`);
+        const variantsData = await variantsRes.json();
+
+        const statsRes = await fetch(`${API_URL}/exams/${exam_id}/stats`);
+>>>>>>> origin/main
         const statsData = await statsRes.json();
 
         setExam(examData);
@@ -33,7 +40,7 @@ export default function ExamDetailPage() {
     };
 
     loadData();
-  }, [examId]);
+  }, [exam_id]);
 
   const getStatusBadge = (status: string) => {
     const badges: any = {
@@ -126,20 +133,49 @@ export default function ExamDetailPage() {
             <div className="space-y-4">
               <InfoRow label="Эхлэх огноо:" value={formatDate(exam.open_on)} />
               <InfoRow
+<<<<<<< HEAD
                 label="Дуусах огноо:"
                 value={formatDate(exam.close_on)}
               />
+=======
+                label="Нээх огноо:"
+                value={formatDate(exam.open_on || exam.startDate)}
+              />
+              <InfoRow
+                label="Хаах огноо:"
+                value={formatDate(exam.close_on || exam.endDate)}
+              />
+              <InfoRow label="Дуусах огноо:" value={formatDate(exam.end_on)} />
+>>>>>>> origin/main
               <InfoRow
                 label="Үргэлжлэх хугацаа:"
                 value={`${exam.duration} минут`}
               />
             </div>
             <div className="space-y-4">
+<<<<<<< HEAD
               <InfoRow label="Нийт оноо:" value={exam.total_point || "—"} />
               <InfoRow label="Тэнцэх оноо:" value={exam.grade_point || "—"} />
               <InfoRow
                 label="Үүсгэсэн:"
                 value={exam.createdAt || "Тодорхойгүй"}
+=======
+              <InfoRow
+                label="Нийт оноо:"
+                value={exam.total_point || exam.totalMarks || "—"}
+              />
+              <InfoRow
+                label="Тэнцэх оноо:"
+                value={exam.grade_point || exam.passingMarks || "—"}
+              />
+              <InfoRow
+                label="Максимум оролдлого:"
+                value={exam.max_attempt || "—"}
+              />
+              <InfoRow
+                label="Хичээл:"
+                value={exam.course?.name || exam.courseName || "—"}
+>>>>>>> origin/main
               />
             </div>
           </div>
@@ -152,7 +188,7 @@ export default function ExamDetailPage() {
               Вариантууд ({variants.length})
             </h2>
             <Link
-              to={`/team6/exams/${examId}/variants/create`}
+              to={`/team6/exams/${exam_id}/variants/create`}
               className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium"
             >
               + Вариант нэмэх
@@ -167,7 +203,7 @@ export default function ExamDetailPage() {
               {variants.map((variant) => (
                 <Link
                   key={variant.id}
-                  to={`/team6/exams/${examId}/variants/${variant.id}`}
+                  to={`/team6/exams/${exam_id}/variants/${variant.id}`}
                   className="block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center justify-between">
@@ -188,6 +224,25 @@ export default function ExamDetailPage() {
             </div>
           )}
         </div>
+<<<<<<< HEAD
+=======
+
+        {/* Actions */}
+        <div className="flex gap-4">
+          <Link
+            to={`/team6/exams/${exam_id}/edit`}
+            className="flex-1 px-6 py-3 text-center border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Засах
+          </Link>
+          <Link
+            to={`/team6/exams/${exam_id}/report`}
+            className="flex-1 px-6 py-3 text-center bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
+          >
+            Тайлан харах
+          </Link>
+        </div>
+>>>>>>> origin/main
       </div>
     </div>
   );

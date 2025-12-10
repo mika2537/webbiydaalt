@@ -3,13 +3,13 @@ import * as ExamsService from "./exams.service.js";
 let StudentAnswers = []; // temporary database
 
 // LOAD STUDENT EXAM
-export async function getStudentExam({ examId, studentId }) {
+export async function getStudentExam({ exam_id, student_id }) {
   let obj = StudentAnswers.find(
-    (x) => x.examId === examId && x.studentId === studentId
+    (x) => x.exam_id === exam_id && x.student_id === student_id
   );
 
   if (!obj) {
-    obj = { examId, studentId, answers: [] };
+    obj = { exam_id, student_id, answers: [] };
     StudentAnswers.push(obj);
   }
 
@@ -17,13 +17,13 @@ export async function getStudentExam({ examId, studentId }) {
 }
 
 // SAVE STUDENT ANSWERS
-export async function updateStudentExam({ examId, studentId }, data) {
+export async function updateStudentExam({ exam_id, student_id }, data) {
   let obj = StudentAnswers.find(
-    (x) => x.examId === examId && x.studentId === studentId
+    (x) => x.exam_id === exam_id && x.student_id === student_id
   );
 
   if (!obj) {
-    obj = { examId, studentId, answers: [] };
+    obj = { exam_id, student_id, answers: [] };
     StudentAnswers.push(obj);
   }
 
@@ -32,12 +32,12 @@ export async function updateStudentExam({ examId, studentId }, data) {
 }
 
 // AUTO CHECK EXAM
-export async function checkExam({ examId, studentId }) {
-  const exam = await ExamsService.getExam(examId);
-  const questions = await ExamsService.getExamQuestions(examId);
+export async function checkExam({ exam_id, student_id }) {
+  const exam = await ExamsService.getExam(exam_id);
+  const questions = await ExamsService.getExamQuestions(exam_id);
 
   const student = StudentAnswers.find(
-    (x) => x.examId === examId && x.studentId === studentId
+    (x) => x.exam_id === exam_id && x.student_id === student_id
   );
 
   if (!exam || !questions || !student) {
@@ -59,15 +59,15 @@ export async function checkExam({ examId, studentId }) {
     else wrong++;
   }
 
-  return { examId, studentId, correct, wrong };
+  return { exam_id, student_id, correct, wrong };
 }
 
 // FINAL RESULT
-export async function getResult({ examId, studentId }) {
-  const exam = await ExamsService.getExam(examId);
-  const questions = await ExamsService.getExamQuestions(examId);
+export async function getResult({ exam_id, student_id }) {
+  const exam = await ExamsService.getExam(exam_id);
+  const questions = await ExamsService.getExamQuestions(exam_id);
 
-  const { correct, wrong } = await checkExam({ examId, studentId });
+  const { correct, wrong } = await checkExam({ exam_id, student_id });
 
   const total = questions.length;
   const score = Math.round((correct / total) * exam.totalMarks);
@@ -75,8 +75,8 @@ export async function getResult({ examId, studentId }) {
   const grade = score >= exam.passingMarks ? "PASS" : "FAIL";
 
   return {
-    examId,
-    studentId,
+    exam_id,
+    student_id,
     score,
     correct,
     wrong,

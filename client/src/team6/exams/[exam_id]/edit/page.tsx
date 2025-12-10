@@ -7,7 +7,7 @@ const API_URL = "http://localhost:3001/api";
 
 export interface Exam {
   id: number;
-  courseId: number;
+  course_id: number;
   title: string;
   description: string;
   startDate: string;
@@ -24,7 +24,7 @@ export interface Exam {
 }
 
 export default function EditExamPage() {
-  const { examId } = useParams();
+  const { exam_id } = useParams();
   const navigate = useNavigate();
 
   const [exam, setExam] = useState<Exam | null>(null);
@@ -41,7 +41,7 @@ export default function EditExamPage() {
   useEffect(() => {
     const loadExam = async () => {
       try {
-        const res = await fetch(`${API_URL}/exams/${examId}`);
+        const res = await fetch(`${API_URL}/exams/${exam_id}`);
         const data = await res.json();
 
         if (data) {
@@ -61,7 +61,7 @@ export default function EditExamPage() {
     };
 
     loadExam();
-  }, [examId]);
+  }, [exam_id]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -80,7 +80,7 @@ export default function EditExamPage() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/exams/${examId}`, {
+      const res = await fetch(`${API_URL}/exams/${exam_id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -95,7 +95,7 @@ export default function EditExamPage() {
       if (!res.ok) throw new Error("Update failed");
 
       setMessage("Шалгалтын мэдээлэл амжилттай шинэчлэгдлээ!");
-      setTimeout(() => navigate(`/team6/exams/${examId}`), 1200);
+      setTimeout(() => navigate(`/team6/exams/${exam_id}`), 1200);
     } catch (error) {
       console.error("❌ Error updating exam:", error);
       setMessage("⚠️ Шалгалтын мэдээлэл шинэчлэхэд алдаа гарлаа!");
@@ -213,7 +213,7 @@ export default function EditExamPage() {
 
             <button
               type="button"
-              onClick={() => navigate(`/team6/exams/${examId}`)}
+              onClick={() => navigate(`/team6/exams/${exam_id}`)}
               className="flex-1 px-6 py-3 bg-white border-2 border-gray-200 text-gray-900 rounded-lg font-medium text-center hover:bg-gray-50 transition-colors"
             >
               Болих

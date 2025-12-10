@@ -7,8 +7,8 @@ interface StudentAnswer {
 }
 
 interface StudentExam {
-  examId: number;
-  studentId: number;
+  exam_id: number;
+  student_id: number;
   answers: StudentAnswer[];
   score?: number;
 }
@@ -24,7 +24,7 @@ interface Question {
 }
 
 export default function CheckExamPage() {
-  const { examId, studentId } = useParams();
+  const { exam_id, student_id } = useParams();
 
   const API_URL = "http://localhost:3001";
 
@@ -41,19 +41,19 @@ export default function CheckExamPage() {
     async function load() {
       try {
         // 1. exam info
-        const examRes = await fetch(`${API_URL}/exams/${examId}`);
+        const examRes = await fetch(`${API_URL}/exams/${exam_id}`);
         const examData = await examRes.json();
         setExam(examData);
 
         // 2. student answers
         const studentRes = await fetch(
-          `${API_URL}/students/${examId}/${studentId}`
+          `${API_URL}/students/${exam_id}/${student_id}`
         );
         const studentData = await studentRes.json();
         setStudentExam(studentData);
 
         // 3. questions of exam
-        const qRes = await fetch(`${API_URL}/exams/${examId}/questions`);
+        const qRes = await fetch(`${API_URL}/exams/${exam_id}/questions`);
         const qData = await qRes.json();
         setQuestions(qData);
 
@@ -84,7 +84,7 @@ export default function CheckExamPage() {
     }
 
     load();
-  }, [examId, studentId]);
+  }, [examId, student_id]);
 
   // ---------------------
   // Loading / Not found

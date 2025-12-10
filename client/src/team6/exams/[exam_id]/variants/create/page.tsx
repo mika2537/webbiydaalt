@@ -5,7 +5,7 @@ const API_URL = "http://localhost:3001/api";
 
 export default function CreateVariantPage() {
   const navigate = useNavigate();
-  const { examId } = useParams();
+  const { exam_id } = useParams();
 
   const [form, setForm] = useState({
     name: "",
@@ -27,7 +27,7 @@ export default function CreateVariantPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/variants/${examId}`, {
+      const res = await fetch(`${API_URL}/variants/${exam_id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -41,7 +41,7 @@ export default function CreateVariantPage() {
       setMessage("Амжилттай нэмэгдлээ!");
       setForm({ name: "", description: "" });
 
-      setTimeout(() => navigate(`/team6/exams/${examId}/variants`), 1200);
+      setTimeout(() => navigate(`/team6/exams/${exam_id}/variants`), 1200);
     } catch (error) {
       console.error("❌ Вариант үүсгэхэд алдаа:", error);
       setMessage("⚠️ Вариант үүсгэхэд алдаа гарлаа!");

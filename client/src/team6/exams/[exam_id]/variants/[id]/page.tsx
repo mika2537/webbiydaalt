@@ -13,7 +13,7 @@ interface Question {
 
 interface Variant {
   id: number;
-  examId: number;
+  exam_id: number;
   name: string;
   description: string;
   questionIds: number[];
@@ -22,7 +22,7 @@ interface Variant {
 }
 
 export default function VariantDetailPage() {
-  const { examId, id } = useParams();
+  const { exam_id, id } = useParams();
   const navigate = useNavigate();
   const variantId = id;
 
@@ -32,7 +32,7 @@ export default function VariantDetailPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch(`${API_URL}/variants/${examId}/${variantId}`);
+        const res = await fetch(`${API_URL}/variants/${exam_id}/${variantId}`);
         const data = await res.json();
         setVariant(data);
 

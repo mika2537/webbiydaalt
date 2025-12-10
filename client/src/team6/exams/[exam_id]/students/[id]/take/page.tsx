@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 
 export default function TakeExamPage() {
-  const { examId, studentId } = useParams();
+  const { exam_id, student_id } = useParams();
   const navigate = useNavigate();
 
   const API_URL = "http://localhost:3001";
@@ -22,27 +22,27 @@ export default function TakeExamPage() {
     async function load() {
       try {
         // 1. Exam Info
-        const examRes = await fetch(`${API_URL}/exams/${examId}`);
+        const examRes = await fetch(`${API_URL}/exams/${exam_id}`);
         const examData = await examRes.json();
         setExam(examData);
 
         // 2. Fetch student's assigned variant OR random variant
         const variantRes = await fetch(
-          `${API_URL}/variants/${examId}/student/${studentId}`
+          `${API_URL}/variants/${exam_id}/student/${student_id}`
         );
         const variantData = await variantRes.json();
         setVariant(variantData);
 
         // 3. Fetch questions for variant
         const qRes = await fetch(
-          `${API_URL}/variants/${examId}/${variantData.id}/questions`
+          `${API_URL}/variants/${exam_id}/${variantData.id}/questions`
         );
         const qData = await qRes.json();
         setQuestions(qData);
 
         // 4. Load local saved answers
         const saved = JSON.parse(
-          sessionStorage.getItem(`exam_${examId}_answers`) || "{}"
+          sessionStorage.getItem(`exam_${exam_id}_answers`) || "{}"
         );
         setAnswers(saved);
       } catch (err) {
@@ -53,7 +53,7 @@ export default function TakeExamPage() {
     }
 
     load();
-  }, [examId, studentId]);
+  }, [examId, student_id]);
 
   // -----------------------------
   // 🔥 2. Save Answers
@@ -62,7 +62,7 @@ export default function TakeExamPage() {
     const q = questions[currentQuestion];
     setAnswers((prev) => {
       const updated = { ...prev, [q.id]: value };
-      sessionStorage.setItem(`exam_${examId}_answers`, JSON.stringify(updated));
+      sessionStorage.setItem(`exam_${exam_id}_answers`, JSON.stringify(updated));
       return updated;
     });
   };
@@ -90,13 +90,13 @@ export default function TakeExamPage() {
       response: Array.isArray(value) ? value : [value],
     }));
 
-    await fetch(`${API_URL}/students/${examId}/${studentId}`, {
+    await fetch(`${API_URL}/students/${exam_id}/${student_id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ answers: payload }),
     });
 
-    navigate(`/team6/exams/${examId}/students/${studentId}/check`);
+    navigate(`/team6/exams/${exam_id}/students/${student_id}/check`);
   };
 
   // -----------------------------
@@ -132,7 +132,7 @@ export default function TakeExamPage() {
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <Link
-            to={`/team6/exams/${examId}/students/${studentId}/start`}
+            to={`/team6/exams/${exam_id}/students/${student_id}/start`}
             className="text-gray-600 hover:text-gray-900"
           >
             ← Буцах

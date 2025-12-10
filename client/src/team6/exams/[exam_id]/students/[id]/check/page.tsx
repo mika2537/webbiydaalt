@@ -19,7 +19,7 @@ interface Question {
 }
 
 export default function CheckExamPage() {
-  const { examId, studentId } = useParams();
+  const { exam_id, student_id } = useParams();
 
   const API_URL = "http://localhost:3001";
 
@@ -35,26 +35,26 @@ export default function CheckExamPage() {
     async function load() {
       try {
         // 1. Load exam info
-        const examRes = await fetch(`${API_URL}/exams/${examId}`);
+        const examRes = await fetch(`${API_URL}/exams/${exam_id}`);
         const examData = await examRes.json();
         setExam(examData);
 
         // 2. Load student variant
         const variantRes = await fetch(
-          `${API_URL}/variants/${examId}/student/${studentId}`
+          `${API_URL}/variants/${exam_id}/student/${student_id}`
         );
         const variantData = await variantRes.json();
 
         // 3. Load questions for this variant
         const questionRes = await fetch(
-          `${API_URL}/variants/${examId}/${variantData.id}/questions`
+          `${API_URL}/variants/${exam_id}/${variantData.id}/questions`
         );
         const questionData = await questionRes.json();
         setQuestions(questionData);
 
         // 4. Load student's submitted answers
         const studentRes = await fetch(
-          `${API_URL}/students/${examId}/${studentId}`
+          `${API_URL}/students/${exam_id}/${student_id}`
         );
         const studentData = await studentRes.json();
 
@@ -72,7 +72,7 @@ export default function CheckExamPage() {
     }
 
     load();
-  }, [examId, studentId]);
+  }, [examId, student_id]);
 
   // ---------------------------------------------------
   // Utils
@@ -131,7 +131,7 @@ export default function CheckExamPage() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow">
         <Link
-          to={`/team6/exams/${examId}/students/${studentId}/result`}
+          to={`/team6/exams/${exam_id}/students/${student_id}/result`}
           className="text-gray-600 hover:text-black"
         >
           ← Буцах
@@ -191,7 +191,7 @@ export default function CheckExamPage() {
 
         <div className="mt-10 flex justify-center">
           <Link
-            to={`/team6/exams/${examId}/students/${studentId}/result`}
+            to={`/team6/exams/${exam_id}/students/${student_id}/result`}
             className="px-6 py-3 bg-black text-white rounded-lg"
           >
             Үр дүн рүү буцах
