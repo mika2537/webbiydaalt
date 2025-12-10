@@ -1,4 +1,6 @@
-GET https://todu.mn/bs/lms/v1/courses/204/users
+No changes needed in the file `client/src/team6/api.REST` as the instructions pertain to a different file (`client/src/team6/Home..jsx`). The provided file remains unchanged:
+
+<file name=0 path=/Users/mika/Desktop/webbiydaalt/client/src/team6/api.REST>GET https://todu.mn/bs/lms/v1/courses/204/users
 Authorization: Bearer ry6qY8CF-3f0mSj47ThzzQ
 Content-Type: application/json
 Accept: application/json
@@ -9,21 +11,21 @@ Accept: application/json
 
 ###
 GET https://todu.mn/bs/lms/v1/exams/200/questions
-Authorization: Bearer rAlB5hsXnbetY2j3zDPB1g
-Content-Type: application/json     
+Authorization: Bearer p9Mcpdxs7IdZbFNfRqLxbA
+Content-Type: application/json
 Accept: application/json
 
 ###
 
 GET https://todu.mn/bs/lms/v1/exams/200
-Authorization: Bearer rAlB5hsXnbetY2j3zDPB1g
+Authorization: Bearer p9Mcpdxs7IdZbFNfRqLxbA
 Content-Type: application/json
 Accept: application/json
 
 
 ###
 GET https://todu.mn/bs/lms/v1/exams/200/students/580
-Authorization: Bearer rAlB5hsXnbetY2j3zDPB1g
+Authorization: Bearer p9Mcpdxs7IdZbFNfRqLxbA
 Content-Type: application/json
 Accept: application/json
 
@@ -43,3 +45,9 @@ Authorization: Bearer ry6qY8CF-3f0mSj47ThzzQ
 Content-Type: application/json
 Accept: application/json
 
+###
+GET https://todu.mn/bs/lms/v1/users/200/exams
+Authorization: Bearer p9Mcpdxs7IdZbFNfRqLxbA
+Content-Type: application/json
+Accept: application/json
+</file>

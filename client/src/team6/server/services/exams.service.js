@@ -41,28 +41,15 @@ export async function getExam(id) {
   return Exams.find((x) => x.id === id);
 }
 
-<<<<<<< HEAD
 export async function updateExam(id, data) {
   const index = Exams.findIndex((x) => x.id === id);
-=======
-export async function getExam(exam_id) {
-  return Exams.find((x) => x.id === examId);
-}
-
-export async function updateExam(exam_id, data) {
-  const index = Exams.findIndex((x) => x.id === examId);
->>>>>>> origin/main
   if (index === -1) return null;
 
   Exams[index] = { ...Exams[index], ...data };
   return Exams[index];
 }
 
-<<<<<<< HEAD
 export async function getExamReport(id) {
-=======
-export async function getExamReport(exam_id) {
->>>>>>> origin/main
   return {
     examId: id,
     stats: { total: 0, passed: 0, failed: 0 },

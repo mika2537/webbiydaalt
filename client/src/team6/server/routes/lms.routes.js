@@ -4,51 +4,89 @@ import axios from "axios";
 const router = express.Router();
 
 const LMS_API = "https://todu.mn/bs/lms/v1";
-const LMS_TOKEN = "ry6qY8CF-3f0mSj47ThzzQ";
+const LMS_TOKEN = process.env.LMS_TOKEN;
 
-// GET /api/courses/:course_id/exams - Get all exams for a course
-router.get("/:course_id/exams", async (req, res) => {
+const headers = {
+  Authorization: `Bearer ${LMS_TOKEN}`,
+  Accept: "application/json",
+  "Content-Type": "application/json",
+};
+
+/* ------------------------------------------
+   GET /api/lms/users/:id/exams
+------------------------------------------- */
+router.get("/lms/users/:id/exams", async (req, res) => {
   try {
-    const { course_id } = req.params;
+    const { id } = req.params;
 
-    const response = await axios.get(`${LMS_API}/courses/${course_id}/exams`, {
-      headers: {
-        Authorization: `Bearer ${LMS_TOKEN}`,
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
+    const response = await axios.get(`${LMS_API}/users/${id}/exams`, {
+      headers,
     });
 
     res.json(response.data);
-  } catch (error) {
-    console.error("Error fetching course exams:", error.message);
-    res.status(error.response?.status || 500).json({
-      error: error.message,
-      details: error.response?.data,
-    });
+  } catch (err) {
+    console.log("❌ LMS user exams error:", err.response?.data || err.message);
+    res.status(err.response?.status || 500).json(err.response?.data || err);
   }
 });
 
-// GET /api/courses/:course_id/users - Get all users in a course
-router.get("/:course_id/users", async (req, res) => {
+/* ------------------------------------------
+   GET /api/lms/exams/:exam_id/questions
+------------------------------------------- */
+router.get("/lms/exams/:exam_id/questions", async (req, res) => {
   try {
-    const { course_id } = req.params;
+    const { exam_id } = req.params;
 
-    const response = await axios.get(`${LMS_API}/courses/${course_id}/users`, {
-      headers: {
-        Authorization: `Bearer ${LMS_TOKEN}`,
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
+    const response = await axios.get(`${LMS_API}/exams/${exam_id}/questions`, {
+      headers,
     });
 
     res.json(response.data);
-  } catch (error) {
-    console.error("Error fetching course users:", error.message);
-    res.status(error.response?.status || 500).json({
-      error: error.message,
-      details: error.response?.data,
+  } catch (err) {
+    console.log(
+      "❌ LMS exam questions error:",
+      err.response?.data || err.message
+    );
+    res.status(err.response?.status || 500).json(err.response?.data || err);
+  }
+});
+
+/* ------------------------------------------
+   GET /api/lms/questions (filtered query)
+------------------------------------------- */
+router.get("/lms/questions", async (req, res) => {
+  try {
+    const response = await axios.get(`${LMS_API}/questions`, {
+      headers,
+      params: req.query,
     });
+
+    res.json(response.data);
+  } catch (err) {
+    console.log(
+      "❌ LMS question filtered error:",
+      err.response?.data || err.message
+    );
+    res.status(err.response?.status || 500).json(err.response?.data || err);
+  }
+});
+
+/* ------------------------------------------
+   GET /api/lms/questions/:id
+------------------------------------------- */
+router.get("/lms/questions/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const response = await axios.get(`${LMS_API}/questions/${id}`, { headers });
+
+    res.json(response.data);
+  } catch (err) {
+    console.log(
+      "❌ LMS question detail error:",
+      err.response?.data || err.message
+    );
+    res.status(err.response?.status || 500).json(err.response?.data || err);
   }
 });
 

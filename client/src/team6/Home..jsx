@@ -11,8 +11,10 @@ export default function Team6Home() {
       >
         📘 Manage Exams
       </Link>
+
+      {/* FIXED ROUTE → goes to Student Exam List */}
       <Link
-        to={`/team6/students/200/exams/take`}
+        to="/team6/students/200/exams"
         className="px-8 py-4 bg-blue-600 text-white rounded-lg text-xl hover:bg-blue-700"
       >
         🧑‍🎓 Take Exam

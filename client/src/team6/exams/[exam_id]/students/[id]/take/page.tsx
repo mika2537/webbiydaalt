@@ -1,100 +1,178 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 
-export default function TakeExamListPage() {
-  const userId = 200;
+export default function TakeExamPage() {
+  const { exam_id, student_id } = useParams();
+  const navigate = useNavigate();
 
-  // TODO: You should store this token safely (env, server)
-  const TOKEN = "mjrkegV2v6gpmWWK2miGwQ";
-
-  const [exams, setExams] = useState([]);
+  const [exam, setExam] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(
-          `https://todu.mn/bs/lms/v1/users/${userId}/exams`,
-          {
-            method: "GET",
-            headers: {
-              Accept: "application/json",
-              Authorization: `Bearer ${TOKEN}`,
-            },
-          }
-        );
+        console.log("Loading exam:", exam_id);
 
-        if (!res.ok) {
-          console.error("FAILED:", res.status);
-          setLoading(false);
-          return;
+        // 1️⃣ Load exam info
+        const examRes = await fetch(
+          `http://localhost:3001/api/lms/exams/${exam_id}`
+        );
+        const examData = await examRes.json();
+        setExam(examData);
+
+        // 2️⃣ Load exam question groups
+        const groupRes = await fetch(
+          `http://localhost:3001/api/lms/exams/${exam_id}/questions`
+        );
+        const groupData = await groupRes.json();
+        const groups = groupData.items || [];
+
+        // 3️⃣ Load REAL QUESTION for each group.id
+        let finalQuestions = [];
+
+        for (const group of groups) {
+          const { id } = group; // <-- This is the question ID
+
+          const qRes = await fetch(
+            `http://localhost:3001/api/lms/questions/${id}`
+          );
+
+          const qData = await qRes.json();
+
+          // Convert single question → array for uniform rendering
+          const q = { ...qData };
+
+          // Fix multiple-choice option field
+          if (q.option && Array.isArray(q.option.options)) {
+            q.options = q.option.options;
+          }
+
+          finalQuestions.push(q);
         }
 
-        const data = await res.json();
-        setExams(data.items || []);
-      } catch (e) {
-        console.error("Error loading exams:", e);
+        setQuestions(finalQuestions);
+      } catch (err) {
+        console.error("❌ Error loading exam:", err);
       }
 
       setLoading(false);
     }
 
     load();
-  }, []);
+  }, [exam_id]);
+
+  // Save answer
+  const updateAnswer = (qid, value) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [qid]: [value],
+    }));
+  };
+
+  // Submit answers
+  const handleSubmit = async () => {
+    const payload = {
+      answers: Object.entries(answers).map(([qid, response]) => ({
+        questionId: Number(qid),
+        response,
+      })),
+    };
+
+    await fetch(`http://localhost:3001/api/students/${exam_id}/${student_id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    navigate(`/team6/exams/${exam_id}/students/${student_id}/check`);
+  };
 
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        ⏳ Ачаалж байна...
+      <div className="min-h-screen flex items-center justify-center text-lg">
+        ⏳ Шалгалт ачаалж байна...
+      </div>
+    );
+
+  if (!exam)
+    return (
+      <div className="min-h-screen flex items-center justify-center flex-col">
+        ❌ Шалгалт олдсонгүй.
+        <Link to="/team6" className="underline mt-4 text-blue-600">
+          Буцах
+        </Link>
       </div>
     );
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <h1 className="text-3xl font-bold">🧑‍🎓 Миний шалгалтууд</h1>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold mb-6">{exam.name}</h1>
 
-        {exams.length === 0 && (
-          <div className="text-gray-500">Өгөх шалгалт алга.</div>
-        )}
+        {questions.map((q, i) => {
+          const current = answers[q.id] || [];
 
-        {exams.map((exam) => (
-          <div
-            key={exam.id}
-            className="border p-4 rounded-lg bg-white shadow-sm"
-          >
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-xl font-semibold">{exam.name}</h2>
-                <p className="text-gray-600">{exam.course?.name}</p>
+          return (
+            <div key={q.id} className="bg-white p-5 rounded-lg shadow mb-6">
+              <h2 className="text-lg font-semibold mb-3">
+                {i + 1}. {q.question}
+              </h2>
 
-                <p className="text-sm text-gray-500 mt-1">
-                  Нийт оноо: {exam.total_point} / Тэнцэх: {exam.grade_point}
-                </p>
+              {/* TRUE / FALSE */}
+              {q.type_id === 10 && (
+                <>
+                  <label className="block mb-2">
+                    <input
+                      type="radio"
+                      name={`q-${q.id}`}
+                      checked={current[0] === "true"}
+                      onChange={() => updateAnswer(q.id, "true")}
+                      className="mr-2"
+                    />
+                    Үнэн
+                  </label>
 
-                <p className="text-sm text-gray-500">
-                  Хугацаа: {exam.duration} минут
-                </p>
+                  <label className="block">
+                    <input
+                      type="radio"
+                      name={`q-${q.id}`}
+                      checked={current[0] === "false"}
+                      onChange={() => updateAnswer(q.id, "false")}
+                      className="mr-2"
+                    />
+                    Худал
+                  </label>
+                </>
+              )}
 
-                <p className="text-sm text-gray-500">
-                  Эхлэх: {new Date(exam.open_on).toLocaleString("mn-MN")}
-                </p>
-
-                <p className="text-sm text-gray-500">
-                  Дуусах: {new Date(exam.close_on).toLocaleString("mn-MN")}
-                </p>
-              </div>
-
-              {/* Start Exam Button */}
-              <Link
-                to={`/team6/exams/${exam.id}/students/${userId}/start`}
-                className="px-5 py-3 bg-black text-white rounded-lg hover:bg-gray-800"
-              >
-                ▶ Шалгалт эхлүүлэх
-              </Link>
+              {/* MULTIPLE CHOICE */}
+              {q.type_id === 20 &&
+                q.options?.map((opt, idx) => (
+                  <label key={idx} className="block mb-1">
+                    <input
+                      type="radio"
+                      name={`q-${q.id}`}
+                      checked={current[0] === opt}
+                      onChange={() => updateAnswer(q.id, opt)}
+                      className="mr-2"
+                    />
+                    {opt}
+                  </label>
+                ))}
             </div>
-          </div>
-        ))}
+          );
+        })}
+
+        <div className="text-center">
+          <button
+            onClick={handleSubmit}
+            className="px-8 py-4 bg-black text-white rounded-lg hover:bg-gray-800"
+          >
+            ✓ Шалгалт дуусгах
+          </button>
+        </div>
       </div>
     </div>
   );

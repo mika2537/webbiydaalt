@@ -1,11 +1,9 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 
 interface StudentAnswer {
   questionId: number;
-  response: string[]; // always array for consistency
+  response: string[];
 }
 
 interface Question {
@@ -29,83 +27,72 @@ export default function CheckExamPage() {
   const [loading, setLoading] = useState(true);
 
   // ---------------------------------------------------
-  // 🔥 Load exam + variant + questions + student answers
+  // Load exam + questions + student answers
   // ---------------------------------------------------
   useEffect(() => {
     async function load() {
       try {
-        // 1. Load exam info
+        // 1. Exam info
         const examRes = await fetch(`${API_URL}/exams/${exam_id}`);
         const examData = await examRes.json();
         setExam(examData);
 
-        // 2. Load student variant
-        const variantRes = await fetch(
-          `${API_URL}/variants/${exam_id}/student/${student_id}`
-        );
-        const variantData = await variantRes.json();
+        // 2. Questions list
+        const qRes = await fetch(`${API_URL}/exams/${exam_id}/questions`);
+        const qData = await qRes.json();
+        setQuestions(qData);
 
-        // 3. Load questions for this variant
-        const questionRes = await fetch(
-          `${API_URL}/variants/${exam_id}/${variantData.id}/questions`
-        );
-        const questionData = await questionRes.json();
-        setQuestions(questionData);
-
-        // 4. Load student's submitted answers
+        // 3. Student answers
         const studentRes = await fetch(
           `${API_URL}/students/${exam_id}/${student_id}`
         );
         const studentData = await studentRes.json();
 
         setStudentAnswers(
-          studentData.answers.map((a: any) => ({
+          (studentData.answers || []).map((a: any) => ({
             questionId: a.questionId,
-            response: Array.isArray(a.response) ? a.response : [a.response],
+            response: Array.isArray(a.response)
+              ? a.response
+              : [a.response ?? ""],
           }))
         );
       } catch (err) {
-        console.error("Error loading exam data:", err);
+        console.error("Error loading exam:", err);
       } finally {
         setLoading(false);
       }
     }
 
     load();
-  }, [examId, student_id]);
+  }, [exam_id, student_id]);
 
   // ---------------------------------------------------
-  // Utils
+  // Helpers
   // ---------------------------------------------------
   const getAnswer = (qid: number) =>
     studentAnswers.find((a) => a.questionId === qid)?.response;
 
-  const isCorrectAnswer = (q: Question, studentAnswer?: string[]) => {
-    if (!studentAnswer || studentAnswer.length === 0) return false;
+  const isCorrectAnswer = (q: Question, answer?: string[]) => {
+    if (!answer || answer.length === 0) return false;
 
     if (q.type === "multiple_choice")
-      return q.correctAnswers.includes(studentAnswer[0]);
+      return q.correctAnswers.includes(answer[0]);
 
     if (q.type === "multiple_correct") {
-      const correct = new Set(q.correctAnswers);
-      const user = new Set(studentAnswer);
-      return (
-        correct.size === user.size && [...correct].every((ans) => user.has(ans))
-      );
+      if (answer.length !== q.correctAnswers.length) return false;
+      return q.correctAnswers.every((x) => answer.includes(x));
     }
 
     if (q.type === "fill_blank" || q.type === "text_answer") {
-      const userText = studentAnswer[0].toLowerCase().trim();
-      return q.correctAnswers.some(
-        (ans) => ans.toLowerCase().trim() === userText
-      );
+      const a = answer[0].trim().toLowerCase();
+      return q.correctAnswers.some((c) => c.trim().toLowerCase() === a);
     }
 
     return false;
   };
 
   // ---------------------------------------------------
-  // Loading / Not found
+  // UI — Loading / No Data
   // ---------------------------------------------------
   if (loading)
     return (
@@ -125,7 +112,7 @@ export default function CheckExamPage() {
     );
 
   // ---------------------------------------------------
-  // UI
+  // UI — RESULT PAGE
   // ---------------------------------------------------
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -138,12 +125,12 @@ export default function CheckExamPage() {
         </Link>
 
         <h1 className="text-3xl font-bold mt-4 mb-1">Таны хариултууд</h1>
-        <p className="mb-6 text-gray-600">{exam.title}</p>
+        <p className="mb-6 text-gray-600">{exam.name}</p>
 
         <div className="space-y-6">
-          {questions.map((q, i) => {
-            const studentAnswer = getAnswer(q.id);
-            const correct = isCorrectAnswer(q, studentAnswer);
+          {questions.map((q, index) => {
+            const answer = getAnswer(q.id);
+            const correct = isCorrectAnswer(q, answer);
 
             return (
               <div
@@ -155,29 +142,26 @@ export default function CheckExamPage() {
                 }`}
               >
                 <h3 className="text-lg font-semibold mb-2">
-                  {i + 1}. {q.question}
+                  {index + 1}. {q.question}
                 </h3>
 
-                {/* Question image */}
                 {q.image && (
-                  <img className="w-72 rounded border mb-3" src={q.image} />
+                  <img src={q.image} className="w-72 rounded border mb-3" />
                 )}
 
-                {/* student's answer */}
-                <div className="mb-3 text-sm">
-                  <p className="font-medium text-gray-700">Таны хариулт:</p>
-                  <p
-                    className={`font-semibold ${
-                      correct ? "text-green-700" : "text-red-700"
-                    }`}
-                  >
-                    {studentAnswer?.length ? studentAnswer.join(", ") : "—"}
-                  </p>
-                </div>
+                <p className="font-medium text-gray-700 text-sm">
+                  Таны хариулт:
+                </p>
+                <p
+                  className={`font-semibold ${
+                    correct ? "text-green-700" : "text-red-700"
+                  }`}
+                >
+                  {answer?.length ? answer.join(", ") : "—"}
+                </p>
 
-                {/* correct answer */}
                 {!correct && (
-                  <div className="p-3 rounded border bg-white">
+                  <div className="p-3 mt-3 rounded border bg-white">
                     <p className="font-medium text-green-700">✓ Зөв хариулт:</p>
                     <p className="font-semibold text-green-800">
                       {q.correctAnswers.join(", ")}
