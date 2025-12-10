@@ -17,10 +17,10 @@ export default function ExamDetailPage() {
         const examRes = await fetch(`${API_URL}/exams/${examId}`);
         const examData = await examRes.json();
 
-        const variantsRes = await fetch(`${API_URL}/variants/exam/${examId}`);
+        const variantsRes = await fetch(`${API_URL}/exam/${examId}/variants`);
         const variantsData = await variantsRes.json();
 
-        const statsRes = await fetch(`${API_URL}/exams/${examId}/stats`);
+        const statsRes = await fetch(`${API_URL}/exam/${examId}/stats`);
         const statsData = await statsRes.json();
 
         setExam(examData);
@@ -57,9 +57,9 @@ export default function ExamDetailPage() {
     );
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "—";
-    const date = new Date(dateString);
+  const formatDate = (value?: string) => {
+    if (!value) return "—";
+    const date = new Date(value);
     return date.toLocaleString("mn-MN", {
       year: "numeric",
       month: "long",
@@ -107,18 +107,11 @@ export default function ExamDetailPage() {
           <div className="flex items-start justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {exam.title || "Нэргүй шалгалт"}
+                {exam.name}
               </h1>
-              <p className="text-gray-600">
-                {exam.description || "Тайлбар байхгүй"}
-              </p>
+              <p className="text-gray-600">{exam.description}</p>
             </div>
             <div className="flex gap-2 items-center">
-              <span
-                className={`px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800`}
-              >
-                🌐 Backend API
-              </span>
               {getStatusBadge(exam.status)}
             </div>
           </div>
@@ -131,39 +124,26 @@ export default function ExamDetailPage() {
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-4">
+              <InfoRow label="Эхлэх огноо:" value={formatDate(exam.open_on)} />
               <InfoRow
-                label="Эхлэх огноо:"
-                value={formatDate(exam.startDate)}
+                label="Дуусах огноо:"
+                value={formatDate(exam.close_on)}
               />
-              <InfoRow label="Дуусах огноо:" value={formatDate(exam.endDate)} />
               <InfoRow
                 label="Үргэлжлэх хугацаа:"
-                value={`${exam.duration || 0} минут`}
+                value={`${exam.duration} минут`}
               />
             </div>
             <div className="space-y-4">
-              <InfoRow label="Нийт оноо:" value={exam.totalMarks || "—"} />
-              <InfoRow label="Тэнцэх оноо:" value={exam.passingMarks || "—"} />
+              <InfoRow label="Нийт оноо:" value={exam.total_point || "—"} />
+              <InfoRow label="Тэнцэх оноо:" value={exam.grade_point || "—"} />
               <InfoRow
                 label="Үүсгэсэн:"
-                value={exam.createdBy || "Тодорхойгүй"}
+                value={exam.createdAt || "Тодорхойгүй"}
               />
             </div>
           </div>
         </div>
-
-        {/* Stats */}
-        {stats && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Статистик</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <StatBox label="Нийт оролцогчид" value={stats.totalStudents} />
-              <StatBox label="Дууссан" value={stats.completedStudents} />
-              <StatBox label="Дундаж оноо" value={stats.averageScore} />
-              <StatBox label="Тэнцсэн хувь" value={`${stats.passRate}%`} />
-            </div>
-          </div>
-        )}
 
         {/* Variants */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-6">
@@ -193,10 +173,10 @@ export default function ExamDetailPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-semibold text-gray-900">
-                        {variant.name || "Нэргүй вариант"}
+                        {variant.name}
                       </h3>
                       <p className="text-sm text-gray-600 mt-1">
-                        {variant.description || "Тайлбар байхгүй"}
+                        {variant.description}
                       </p>
                     </div>
                     <div className="text-sm text-gray-500">
@@ -208,50 +188,14 @@ export default function ExamDetailPage() {
             </div>
           )}
         </div>
-
-        {/* Actions */}
-        <div className="flex gap-4">
-          <Link
-            to={`/team6/exams/${examId}/edit`}
-            className="flex-1 px-6 py-3 text-center border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            Засах
-          </Link>
-          <Link
-            to={`/team6/exams/${examId}/report`}
-            className="flex-1 px-6 py-3 text-center bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
-          >
-            Тайлан харах
-          </Link>
-        </div>
       </div>
     </div>
   );
 }
 
-// Small reusable UI components
-const InfoRow = ({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number;
-}) => (
+const InfoRow = ({ label, value }) => (
   <div className="flex justify-between border-b border-gray-100 pb-3">
     <span className="text-gray-600">{label}</span>
     <span className="font-semibold text-gray-900">{value}</span>
-  </div>
-);
-
-const StatBox = ({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number;
-}) => (
-  <div className="text-center p-4 bg-gray-50 rounded-lg">
-    <div className="text-3xl font-bold text-gray-900 mb-1">{value}</div>
-    <div className="text-sm text-gray-600">{label}</div>
   </div>
 );

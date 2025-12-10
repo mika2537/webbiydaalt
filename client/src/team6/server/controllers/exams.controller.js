@@ -5,9 +5,8 @@ export async function getAllExams(req, res) {
 }
 
 export async function createExam(req, res) {
-  res.json(await ExamsService.createExam(req.body.courseId, req.body));
+  res.json(await ExamsService.createExam(req.body));
 }
-
 export async function getExam(req, res) {
   res.json(await ExamsService.getExam(req.params.examId));
 }

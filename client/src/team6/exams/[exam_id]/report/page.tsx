@@ -16,17 +16,20 @@ export default function ExamReportPage() {
   useEffect(() => {
     const loadReport = async () => {
       try {
+        // Load exam
         const examRes = await fetch(`${API_URL}/exams/${examId}`);
         const examData = await examRes.json();
 
-        const statsRes = await fetch(`${API_URL}/exams/${examId}/stats`);
+        // Load stats (correct endpoint)
+        const statsRes = await fetch(`${API_URL}/exams/${examId}/report`);
         const statsData = await statsRes.json();
 
+        // Load students
         const resultsRes = await fetch(`${API_URL}/exams/${examId}/students`);
         const resultsData = await resultsRes.json();
 
         setExam(examData);
-        setStats(statsData);
+        setStats(statsData?.stats || statsData);
         setStudentResults(Array.isArray(resultsData) ? resultsData : []);
       } catch (error) {
         console.error("API Error:", error);
@@ -86,73 +89,42 @@ export default function ExamReportPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
           <BackButton variant="link" className="mb-4" />
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Шалгалтын тайлан
           </h1>
-          <p className="text-gray-600">{exam?.title || "Нэргүй шалгалт"}</p>
+          <p className="text-gray-600">{exam?.name}</p>
         </div>
 
-        {/* Summary Stats */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8">
           <StatCard
-            value={stats.totalStudents}
+            value={stats.total}
             label="Нийт оролцогчид"
             color="text-gray-900"
           />
           <StatCard
-            value={stats.completedStudents}
-            label="Дууссан"
+            value={stats.passed}
+            label="Тэнцсэн"
             color="text-green-600"
           />
           <StatCard
-            value={stats.averageScore}
+            value={stats.failed}
+            label="Тэнцээгүй"
+            color="text-red-600"
+          />
+          <StatCard
+            value={stats.average || 0}
             label="Дундаж оноо"
             color="text-blue-600"
           />
           <StatCard
-            value={stats.highestScore}
+            value={stats.highest || 0}
             label="Хамгийн өндөр"
             color="text-purple-600"
           />
-          <StatCard
-            value={`${stats.passRate}%`}
-            label="Тэнцсэн хувь"
-            color="text-orange-600"
-          />
         </div>
 
-        {/* Chart (Static Example) */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">
-            Онооны хуваарилалт
-          </h2>
-          <div className="h-64 flex items-end justify-around gap-4 border-b border-l border-gray-200 p-4">
-            <ChartBar height="40%" color="bg-red-500" range="0-40" count="5" />
-            <ChartBar
-              height="60%"
-              color="bg-orange-500"
-              range="41-60"
-              count="12"
-            />
-            <ChartBar
-              height="85%"
-              color="bg-yellow-500"
-              range="61-80"
-              count="18"
-            />
-            <ChartBar
-              height="50%"
-              color="bg-green-500"
-              range="81-100"
-              count="10"
-            />
-          </div>
-        </div>
-
-        {/* Student Results */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div className="p-6 border-b border-gray-200">
             <h2 className="text-xl font-bold text-gray-900">
@@ -167,19 +139,14 @@ export default function ExamReportPage() {
                     №
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Суралцагчийн нэр
+                    Нэр
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Статус
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Оноо
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Үр дүн
-                  </th>
+                  <th className="px-6 py-3">Статус</th>
+                  <th className="px-6 py-3">Оноо</th>
+                  <th className="px-6 py-3">Үр дүн</th>
                 </tr>
               </thead>
+
               <tbody className="divide-y divide-gray-200">
                 {studentResults.length === 0 ? (
                   <tr>
@@ -193,35 +160,37 @@ export default function ExamReportPage() {
                 ) : (
                   studentResults.map((s, index) => (
                     <tr key={s.id || index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {index + 1}
+                      <td className="px-6 py-4">{index + 1}</td>
+
+                      <td className="px-6 py-4 font-medium">
+                        {s.name || "Нэргүй"}
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                        {s.studentName || "Нэргүй"}
-                      </td>
+
                       <td className="px-6 py-4">{getStatusBadge(s.status)}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {s.score !== null && s.score !== undefined ? (
+
+                      <td className="px-6 py-4">
+                        {s.score != null ? (
                           <span className="font-semibold">
-                            {s.score}/{exam.totalMarks}
+                            {s.score}/{exam.total_point}
                           </span>
                         ) : (
-                          <span className="text-gray-400">-</span>
+                          "-"
                         )}
                       </td>
+
                       <td className="px-6 py-4">
-                        {s.score !== null && s.score !== undefined ? (
-                          s.score >= exam.passingMarks ? (
-                            <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                        {s.score != null ? (
+                          s.score >= exam.grade_point ? (
+                            <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs">
                               Тэнцсэн
                             </span>
                           ) : (
-                            <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
+                            <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs">
                               Тэнцээгүй
                             </span>
                           )
                         ) : (
-                          <span className="text-gray-400">-</span>
+                          "-"
                         )}
                       </td>
                     </tr>
@@ -236,35 +205,9 @@ export default function ExamReportPage() {
   );
 }
 
-const StatCard = ({
-  value,
-  label,
-  color,
-}: {
-  value: string | number;
-  label: string;
-  color: string;
-}) => (
+const StatCard = ({ value, label, color }) => (
   <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
     <div className={`text-4xl font-bold mb-2 ${color}`}>{value}</div>
     <div className="text-sm text-gray-600">{label}</div>
-  </div>
-);
-
-const ChartBar = ({
-  height,
-  color,
-  range,
-  count,
-}: {
-  height: string;
-  color: string;
-  range: string;
-  count: string;
-}) => (
-  <div className="flex flex-col items-center gap-2">
-    <div className={`w-16 ${color} rounded-t`} style={{ height }}></div>
-    <div className="text-sm font-medium text-gray-700">{range}</div>
-    <div className="text-xs text-gray-500">{count} хүн</div>
   </div>
 );

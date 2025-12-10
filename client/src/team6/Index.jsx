@@ -4,7 +4,7 @@ import Team6Home from "./Home..jsx";
 
 // Exam Pages
 import ExamsPage from "./exams/page.tsx";
-import ExamCreatePage from "./exams/create/page.tsx";
+import CreateExamPage from "./exams/create/page.tsx"; // <-- FIXED IMPORT
 import ExamDetailPage from "./exams/[exam_id]/page.tsx";
 import ExamEditPage from "./exams/[exam_id]/edit/page.tsx";
 import ExamReportPage from "./exams/[exam_id]/report/page.tsx";
@@ -18,21 +18,27 @@ import StudentDetailPage from "./exams/[exam_id]/students/[id]/page.tsx";
 import StudentEditPage from "./exams/[exam_id]/students/[id]/edit/page.tsx";
 import StudentCheckPage from "./exams/[exam_id]/students/[id]/check/page.tsx";
 import StudentResultPage from "./exams/[exam_id]/students/[id]/result/page.tsx";
+
 export default function Index() {
   return (
     <Routes>
-      {/* =========== HOME PAGE WITH TWO BUTTONS =========== */}
+      {/* =========== HOME PAGE =========== */}
       <Route index element={<Team6Home />} />
 
-      {/* =========== EXAM MANAGEMENT PAGES (Teacher) =========== */}
+      {/* =========== EXAM MANAGEMENT =========== */}
       <Route path="courses/:courseId/exams" element={<ExamsPage />} />
-      <Route path="courses/200/exams/create" element={<ExamCreatePage />} />
+
+      {/* CREATE EXAM PAGE */}
+      <Route
+        path="courses/:courseId/exams/create"
+        element={<CreateExamPage />}
+      />
 
       <Route path="exams/:examId" element={<ExamDetailPage />} />
       <Route path="exams/:examId/edit" element={<ExamEditPage />} />
       <Route path="exams/:examId/report" element={<ExamReportPage />} />
 
-      {/* Variants */}
+      {/* VARIANTS */}
       <Route path="exams/:examId/variants" element={<ExamVariantsPage />} />
       <Route
         path="exams/:examId/variants/create"
@@ -47,7 +53,7 @@ export default function Index() {
         element={<VariantEditPage />}
       />
 
-      {/* =========== TAKE EXAM PAGES (Student) =========== */}
+      {/* STUDENT PAGES */}
       <Route
         path="exams/:examId/students/:studentId"
         element={<StudentDetailPage />}
