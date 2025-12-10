@@ -16,7 +16,6 @@ export default function ExamReportPage() {
   useEffect(() => {
     const loadReport = async () => {
       try {
-<<<<<<< HEAD
         // Load exam
         const examRes = await fetch(`${API_URL}/exams/${examId}`);
         const examData = await examRes.json();
@@ -27,15 +26,6 @@ export default function ExamReportPage() {
 
         // Load students
         const resultsRes = await fetch(`${API_URL}/exams/${examId}/students`);
-=======
-        const examRes = await fetch(`${API_URL}/exams/${exam_id}`);
-        const examData = await examRes.json();
-
-        const statsRes = await fetch(`${API_URL}/exams/${exam_id}/stats`);
-        const statsData = await statsRes.json();
-
-        const resultsRes = await fetch(`${API_URL}/exams/${exam_id}/students`);
->>>>>>> origin/main
         const resultsData = await resultsRes.json();
 
         setExam(examData);

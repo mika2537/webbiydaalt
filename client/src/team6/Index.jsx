@@ -2,73 +2,51 @@
 import { Routes, Route } from "react-router-dom";
 import Team6Home from "./Home..jsx";
 
-<<<<<<< HEAD
-// Exam Pages
-import ExamsPage from "./exams/page.tsx";
-import CreateExamPage from "./exams/create/page.tsx"; // <-- FIXED IMPORT
-=======
-// Exam Pages (Course-based)
+// ===================== EXAM PAGES =====================
 import ExamsPage from "./courses/[course_id]/exams/page.tsx";
-import ExamCreatePage from "./courses/[course_id]/exams/create/page.tsx";
+import CreateExamPage from "./courses/[course_id]/exams/create/page.tsx";
 
-// Exam Detail Pages
->>>>>>> origin/main
 import ExamDetailPage from "./exams/[exam_id]/page.tsx";
 import ExamEditPage from "./exams/[exam_id]/edit/page.tsx";
 import ExamReportPage from "./exams/[exam_id]/report/page.tsx";
 
-// Variant Pages
+// ===================== VARIANT PAGES =====================
 import ExamVariantsPage from "./exams/[exam_id]/variants/page.tsx";
 import VariantCreatePage from "./exams/[exam_id]/variants/create/page.tsx";
 import VariantDetailPage from "./exams/[exam_id]/variants/[id]/page.tsx";
 import VariantEditPage from "./exams/[exam_id]/variants/[id]/edit/page.tsx";
 
-// Student exam pages
+// ===================== STUDENT PAGES =====================
 import StudentDetailPage from "./exams/[exam_id]/students/[id]/page.tsx";
 import StudentTakePage from "./exams/[exam_id]/students/[id]/take/page.tsx";
 import StudentCheckPage from "./exams/[exam_id]/students/[id]/check/page.tsx";
 import StudentResultPage from "./exams/[exam_id]/students/[id]/result/page.tsx";
 
-<<<<<<< HEAD
-=======
-// Question Pages
+// ===================== QUESTION PAGE =====================
 import QuestionDetailPage from "./courses/[course_id]/questions/[question_id]/page.tsx";
 
->>>>>>> origin/main
 export default function Index() {
   return (
     <Routes>
-      {/* =========== HOME PAGE =========== */}
+      {/* HOME */}
       <Route index element={<Team6Home />} />
 
-<<<<<<< HEAD
-      {/* =========== EXAM MANAGEMENT =========== */}
+      {/* LIST EXAMS OF COURSE */}
       <Route path="courses/:courseId/exams" element={<ExamsPage />} />
 
-      {/* CREATE EXAM PAGE */}
+      {/* CREATE NEW EXAM */}
       <Route
         path="courses/:courseId/exams/create"
         element={<CreateExamPage />}
-=======
-      {/* =========== EXAM MANAGEMENT PAGES (Teacher) =========== */}
-      <Route path="courses/:course_id/exams" element={<ExamsPage />} />
-      <Route
-        path="courses/:course_id/exams/create"
-        element={<ExamCreatePage />}
->>>>>>> origin/main
       />
 
+      {/* EXAM DETAIL */}
       <Route path="exams/:exam_id" element={<ExamDetailPage />} />
       <Route path="exams/:exam_id/edit" element={<ExamEditPage />} />
       <Route path="exams/:exam_id/report" element={<ExamReportPage />} />
 
-<<<<<<< HEAD
       {/* VARIANTS */}
-      <Route path="exams/:examId/variants" element={<ExamVariantsPage />} />
-=======
-      {/* Variants */}
       <Route path="exams/:exam_id/variants" element={<ExamVariantsPage />} />
->>>>>>> origin/main
       <Route
         path="exams/:exam_id/variants/create"
         element={<VariantCreatePage />}
@@ -100,7 +78,12 @@ export default function Index() {
         element={<StudentResultPage />}
       />
 
-      {/* =========== QUESTION PAGES =========== */}
+      <Route
+        path="students/:student_id/exams/take"
+        element={<StudentTakePage />}
+      />
+
+      {/* QUESTION PAGE */}
       <Route
         path="courses/:course_id/questions/:question_id"
         element={<QuestionDetailPage />}

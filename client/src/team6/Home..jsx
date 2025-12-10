@@ -12,7 +12,7 @@ export default function Team6Home() {
         📘 Manage Exams
       </Link>
       <Link
-        to="/team6/exams/1/students/1/edit"
+        to={`/team6/students/200/exams/take`}
         className="px-8 py-4 bg-blue-600 text-white rounded-lg text-xl hover:bg-blue-700"
       >
         🧑‍🎓 Take Exam
