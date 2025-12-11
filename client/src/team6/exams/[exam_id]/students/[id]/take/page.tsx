@@ -1,67 +1,70 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-
-/**
- * TakeExamPage.jsx
- * - Sidebar question navigation with check icons
- * - "Answer saved" green indicator for 1.5s after choosing
- * - Previous / Next buttons
- * - Active question detection via IntersectionObserver
- *
- * Note: adjust base URLs if needed.
- */
 
 export default function TakeExamPage() {
   const { exam_id, student_id } = useParams();
   const navigate = useNavigate();
 
+  const QUESTIONS_PER_PAGE = 2;
+
   const [exam, setExam] = useState(null);
-  const [questions, setQuestions] = useState([]);
-  const [answers, setAnswers] = useState({}); // { [qid]: [value] }
+  const [questionIDs, setQuestionIDs] = useState([]); // ← only IDs
+  const [questions, setQuestions] = useState({}); // cached questions
+  const [answers, setAnswers] = useState({});
+  const [savedMap, setSavedMap] = useState({});
   const [loading, setLoading] = useState(true);
-  const [savedMap, setSavedMap] = useState({}); // { [qid]: true } shows "saved" indicator
-  const [currentIndex, setCurrentIndex] = useState(0);
 
-  const containerRef = useRef(null);
-  const observersRef = useRef(null);
+  const [page, setPage] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(null);
 
-  // ---------- Load exam & questions ----------
+  // -----------------------
+  // Helpers
+  // -----------------------
+
+  const formatTime = (sec) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  };
+
+  const cacheKeyQuestions = `exam_${exam_id}_questions`;
+  const cacheKeyAnswers = `exam_${exam_id}_answers`;
+
+  // -----------------------
+  // Load Exam + IDs + Restore Cache
+  // -----------------------
   useEffect(() => {
     async function load() {
       try {
-        console.log("Loading exam:", exam_id);
+        // Restore cached questions and answers
+        const cachedQ = localStorage.getItem(cacheKeyQuestions);
+        const cachedAns = localStorage.getItem(cacheKeyAnswers);
 
-        // 1) exam info
+        if (cachedQ) {
+          setQuestions(JSON.parse(cachedQ));
+        }
+        if (cachedAns) {
+          setAnswers(JSON.parse(cachedAns));
+        }
+
+        // 1) Load exam info
         const examRes = await fetch(
           `http://localhost:3001/api/lms/exams/${exam_id}`
         );
         const examData = await examRes.json();
         setExam(examData);
 
-        // 2) question groups
+        // 2) Load only question IDs
         const groupRes = await fetch(
           `http://localhost:3001/api/lms/exams/${exam_id}/questions`
         );
         const groupData = await groupRes.json();
-        const groups = groupData.items || [];
+        const ids = (groupData.items || []).map((g) => g.id);
 
-        // 3) real question details for each group.id
-        const finalQuestions = [];
-        for (const group of groups) {
-          const qRes = await fetch(
-            `http://localhost:3001/api/lms/questions/${group.id}`
-          );
-          const qData = await qRes.json();
-          const q = { ...qData };
-          if (q.option && Array.isArray(q.option.options))
-            q.options = q.option.options;
-          finalQuestions.push(q);
-        }
-
-        setQuestions(finalQuestions);
+        setQuestionIDs(ids);
+        setLoading(false);
       } catch (err) {
-        console.error("❌ Error loading exam:", err);
-      } finally {
+        console.error("❌ Load error:", err);
         setLoading(false);
       }
     }
@@ -69,76 +72,82 @@ export default function TakeExamPage() {
     load();
   }, [exam_id]);
 
-  // ---------- IntersectionObserver to detect active question ----------
-  useEffect(() => {
-    if (!questions.length) return;
+  // -----------------------
+  // Lazy Load Question By ID
+  // -----------------------
+  const loadQuestionLazy = async (id) => {
+    if (questions[id]) return; // Already cached
 
-    // Clean up any previous observer
-    if (observersRef.current) {
-      observersRef.current.disconnect?.();
-      observersRef.current = null;
+    try {
+      const res = await fetch(`http://localhost:3001/api/lms/questions/${id}`);
+      const qData = await res.json();
+
+      const formatted = {
+        ...qData,
+        options: qData.option?.options || [],
+      };
+
+      const newCache = { ...questions, [id]: formatted };
+      setQuestions(newCache);
+      localStorage.setItem(cacheKeyQuestions, JSON.stringify(newCache));
+    } catch (err) {
+      console.error("❌ Failed load question", id, err);
     }
+  };
 
-    const options = {
-      root: null,
-      rootMargin: "0px",
-      threshold: 0.5, // at least 50% visible to be active
-    };
+  // When page changes → load 2 questions for that page
+  useEffect(() => {
+    const start = page * QUESTIONS_PER_PAGE;
+    const idsToLoad = questionIDs.slice(start, start + QUESTIONS_PER_PAGE);
 
-    const observer = new IntersectionObserver((entries) => {
-      // find the most visible entry (largest intersectionRatio)
-      const visible = entries
-        .filter((e) => e.isIntersecting)
-        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    idsToLoad.forEach((id) => loadQuestionLazy(id));
+  }, [page, questionIDs]);
 
-      if (visible) {
-        const id = visible.target.getAttribute("data-qindex");
-        const idx = Number(id);
-        if (!Number.isNaN(idx)) setCurrentIndex(idx);
-      }
-    }, options);
+  // -----------------------
+  // TIMER SYSTEM
+  // -----------------------
+  useEffect(() => {
+    if (!exam?.duration) return;
 
-    // observe each question element
-    questions.forEach((_, idx) => {
-      const el = document.getElementById(`question-${questions[idx].id}`);
-      if (el) {
-        el.setAttribute("data-qindex", String(idx));
-        observer.observe(el);
-      }
-    });
+    const totalSeconds = exam.duration * 60;
+    setTimeLeft(totalSeconds);
 
-    observersRef.current = observer;
+    let timerId = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timerId);
+          handleSubmit();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
-    return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [questions]);
+    return () => clearInterval(timerId);
+  }, [exam]);
 
-  // ---------- Helpers ----------
+  // -----------------------
+  // Save answer + cache
+  // -----------------------
   const updateAnswer = (qid, value) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [qid]: [value],
-    }));
+    const newAns = { ...answers, [qid]: [value] };
+    setAnswers(newAns);
 
-    // Show saved indicator for 1.5s
+    localStorage.setItem(cacheKeyAnswers, JSON.stringify(newAns));
+
     setSavedMap((prev) => ({ ...prev, [qid]: true }));
     setTimeout(() => {
       setSavedMap((prev) => ({ ...prev, [qid]: false }));
     }, 1500);
   };
 
-  const goToQuestion = (index) => {
-    if (index < 0 || index >= questions.length) return;
-    const el = document.getElementById(`question-${questions[index].id}`);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-      setCurrentIndex(index);
-    }
-  };
-
-  const goNext = () =>
-    goToQuestion(Math.min(currentIndex + 1, questions.length - 1));
-  const goPrev = () => goToQuestion(Math.max(currentIndex - 1, 0));
+  // -----------------------
+  // Pagination
+  // -----------------------
+  const start = page * QUESTIONS_PER_PAGE;
+  const end = start + QUESTIONS_PER_PAGE;
+  const idsOnPage = questionIDs.slice(start, end);
+  const totalPages = Math.ceil(questionIDs.length / QUESTIONS_PER_PAGE);
 
   const handleSubmit = async () => {
     const payload = {
@@ -148,7 +157,6 @@ export default function TakeExamPage() {
       })),
     };
 
-    // original submit endpoint (keeps your earlier behavior)
     await fetch(`http://localhost:3001/api/students/${exam_id}/${student_id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -158,19 +166,21 @@ export default function TakeExamPage() {
     navigate(`/team6/exams/${exam_id}/students/${student_id}/check`);
   };
 
-  // ---------- Render states ----------
+  // -----------------------
+  // UI
+  // -----------------------
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center text-lg">
+      <div className="min-h-screen flex justify-center items-center text-lg">
         ⏳ Шалгалт ачаалж байна...
       </div>
     );
 
   if (!exam)
     return (
-      <div className="min-h-screen flex items-center justify-center flex-col">
+      <div className="min-h-screen flex justify-center items-center flex-col">
         ❌ Шалгалт олдсонгүй.
-        <Link to="/team6" className="underline mt-4 text-blue-600">
+        <Link className="underline" to="/team6">
           Буцах
         </Link>
       </div>
@@ -179,28 +189,25 @@ export default function TakeExamPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto grid grid-cols-12 gap-6">
-        {/* Sidebar */}
+        {/* SIDEBAR */}
         <aside className="col-span-2">
           <div className="sticky top-6 bg-white p-4 rounded-lg shadow">
-            <h3 className="font-semibold mb-3">Шалгалтын удирдлага</h3>
+            <h3 className="font-semibold mb-3">Асуултын жагсаалт</h3>
 
             <div className="grid grid-cols-4 gap-2">
-              {questions.map((q, idx) => {
-                const answered = Boolean(answers[q.id] && answers[q.id].length);
-                const active = idx === currentIndex;
+              {questionIDs.map((id, idx) => {
+                const answered = answers[id];
+                const isActive = Math.floor(idx / QUESTIONS_PER_PAGE) === page;
 
                 return (
                   <button
-                    key={q.id}
-                    onClick={() => goToQuestion(idx)}
-                    className={`w-10 h-10 flex items-center justify-center rounded ${
-                      answered
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 text-gray-700"
-                    } ${
-                      active ? "ring-2 ring-black" : "border border-gray-200"
-                    }`}
-                    title={`Асуулт ${idx + 1}`}
+                    key={id}
+                    onClick={() =>
+                      setPage(Math.floor(idx / QUESTIONS_PER_PAGE))
+                    }
+                    className={`w-10 h-10 flex items-center justify-center rounded
+                      ${answered ? "bg-blue-600 text-white" : "bg-gray-200"}
+                      ${isActive ? "ring-2 ring-black" : ""}`}
                   >
                     {answered ? "✔" : idx + 1}
                   </button>
@@ -208,156 +215,121 @@ export default function TakeExamPage() {
               })}
             </div>
 
-            <div className="mt-4 text-sm text-gray-600">
-              <div>
-                Одоо: <strong>{currentIndex + 1}</strong> / {questions.length}
-              </div>
-              <div className="mt-2">
-                <button
-                  onClick={() => goToQuestion(0)}
-                  className="text-sm underline mr-2"
-                >
-                  Эхэнд
-                </button>
-                <button
-                  onClick={() => goToQuestion(questions.length - 1)}
-                  className="text-sm underline"
-                >
-                  Сүүлд
-                </button>
-              </div>
+            <div className="mt-4 text-sm text-gray-700">
+              Хугацаа:
+              <strong className="ml-2 text-red-600">
+                {formatTime(timeLeft)}
+              </strong>
             </div>
           </div>
         </aside>
 
-        {/* Main content */}
-        <main className="col-span-8" ref={containerRef}>
-          <h1 className="text-3xl font-bold mb-6">{exam.name}</h1>
+        {/* MAIN CONTENT */}
+        <main className="col-span-8">
+          <h1 className="text-3xl font-bold mb-4">{exam.name}</h1>
 
-          {questions.map((q, i) => {
-            const current = answers[q.id] || [];
-            const isSaved = !!savedMap[q.id];
+          {idsOnPage.map((id) => {
+            const q = questions[id];
+            if (!q) return <div key={id}>⏳ Ачаалж байна...</div>;
+
+            const current = answers[id] || [];
+            const saved = savedMap[id];
 
             return (
-              <section
-                key={q.id}
-                id={`question-${q.id}`}
-                className="bg-white p-6 rounded-lg shadow mb-8"
-              >
-                <div className="flex justify-between items-start">
-                  <h2 className="text-lg font-semibold mb-3">
-                    {i + 1}. {q.question}
-                  </h2>
-                  <div className="text-sm text-gray-500">1.00 оноотой</div>
-                </div>
+              <div key={id} className="bg-white p-6 shadow rounded-lg mb-6">
+                <h2 className="font-semibold text-lg mb-3">{q.question}</h2>
 
                 {/* TRUE / FALSE */}
                 {q.type_id === 10 && (
-                  <div className="mb-3">
+                  <>
                     <label className="block mb-2">
                       <input
                         type="radio"
-                        name={`q-${q.id}`}
+                        name={`q-${id}`}
                         checked={current[0] === "true"}
-                        onChange={() => updateAnswer(q.id, "true")}
-                        className="mr-2"
+                        onChange={() => updateAnswer(id, "true")}
                       />
                       Үнэн
                     </label>
 
-                    <label className="block">
+                    <label className="block mb-2">
                       <input
                         type="radio"
-                        name={`q-${q.id}`}
+                        name={`q-${id}`}
                         checked={current[0] === "false"}
-                        onChange={() => updateAnswer(q.id, "false")}
-                        className="mr-2"
+                        onChange={() => updateAnswer(id, "false")}
                       />
                       Худал
                     </label>
-                  </div>
+                  </>
                 )}
 
                 {/* MULTIPLE CHOICE */}
-                {q.type_id === 20 && (
-                  <div className="mb-3">
-                    {q.options?.map((opt, idx) => (
-                      <label key={idx} className="block mb-2">
-                        <input
-                          type="radio"
-                          name={`q-${q.id}`}
-                          checked={current[0] === opt}
-                          onChange={() => updateAnswer(q.id, opt)}
-                          className="mr-2"
-                        />
-                        {opt}
-                      </label>
-                    ))}
-                  </div>
-                )}
+                {q.type_id === 20 &&
+                  q.options?.map((opt, i) => (
+                    <label key={i} className="block mb-2">
+                      <input
+                        type="radio"
+                        name={`q-${id}`}
+                        checked={current[0] === opt}
+                        onChange={() => updateAnswer(id, opt)}
+                      />
+                      {opt}
+                    </label>
+                  ))}
 
-                {/* Answer saved indicator */}
-                {isSaved && (
-                  <div className="inline-block mt-3 px-3 py-1 rounded bg-green-100 text-green-700 text-sm">
+                {saved && (
+                  <div className="mt-3 text-green-600 text-sm">
                     ✓ Хариулт хадгалагдлаа
                   </div>
                 )}
-
-                {/* Prev / Next buttons */}
-                <div className="flex justify-between mt-6">
-                  <button
-                    onClick={() => goPrev()}
-                    disabled={i === 0}
-                    className="px-4 py-2 rounded bg-gray-200 disabled:opacity-50"
-                  >
-                    ◀ Өмнөх
-                  </button>
-
-                  <div className="space-x-2">
-                    <button
-                      onClick={() => goToQuestion(i)}
-                      className="px-4 py-2 rounded bg-gray-100"
-                    >
-                      Одоо харах
-                    </button>
-                    <button
-                      onClick={() => goNext()}
-                      disabled={i === questions.length - 1}
-                      className="px-4 py-2 rounded bg-blue-600 text-white disabled:opacity-50"
-                    >
-                      Дараагийн ▶
-                    </button>
-                  </div>
-                </div>
-              </section>
+              </div>
             );
           })}
 
-          <div className="text-center mt-6">
+          {/* PAGE CONTROLS */}
+          <div className="flex justify-between mt-6">
             <button
-              onClick={handleSubmit}
-              className="px-8 py-3 bg-black text-white rounded-lg hover:bg-gray-800"
+              onClick={() => setPage(page - 1)}
+              disabled={page === 0}
+              className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
             >
-              ✓ Шалгалт дуусгах
+              ◀ Өмнөх
             </button>
+
+            {end >= questionIDs.length ? (
+              <button
+                onClick={handleSubmit}
+                className="px-6 py-2 bg-black text-white rounded"
+              >
+                ✓ Шалгалт дуусгах
+              </button>
+            ) : (
+              <button
+                onClick={() => setPage(page + 1)}
+                className="px-4 py-2 bg-blue-600 text-white rounded"
+              >
+                Дараагийн ▶
+              </button>
+            )}
           </div>
         </main>
 
-        {/* Right small panel (optional) */}
+        {/* RIGHT PANEL */}
         <aside className="col-span-2">
           <div className="sticky top-6 bg-white p-4 rounded-lg shadow">
-            <h4 className="font-medium mb-3">Шалгалтын товчлуур</h4>
-            <div className="text-sm text-gray-600 mb-2">
-              Үлдсэн хугацаа: <strong>{duration}</strong>
+            <h4 className="font-medium">Туслах цэс</h4>
+            <div className="text-sm mt-2">
+              Шалгалтын үргэлжлэх хугацаа:{" "}
+              <strong>{exam.duration} минут</strong>
             </div>
-            <div className="text-sm">
-              <button
-                onClick={() => navigate(`/team6`)}
-                className="text-blue-600 underline"
-              >
-                Буцах
-              </button>
-            </div>
+
+            <button
+              onClick={() => navigate("/team6")}
+              className="mt-4 underline text-blue-600"
+            >
+              Буцах
+            </button>
           </div>
         </aside>
       </div>

@@ -1,185 +1,84 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-
-interface StudentAnswer {
-  questionId: number;
-  response: string[];
-}
-
-interface Question {
-  id: number;
-  question: string;
-  type: string;
-  options?: string[];
-  correctAnswers: string[];
-  marks: number;
-  image?: string;
-}
+import { useParams, Link, useNavigate } from "react-router-dom";
 
 export default function CheckExamPage() {
   const { exam_id, student_id } = useParams();
+  const navigate = useNavigate();
 
-  const API_URL = "http://localhost:3001";
+  const cacheKeyQuestions = `exam_${exam_id}_questions`;
+  const cacheKeyAnswers = `exam_${exam_id}_answers`;
 
-  const [exam, setExam] = useState<any>(null);
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [studentAnswers, setStudentAnswers] = useState<StudentAnswer[]>([]);
+  const [questions, setQuestions] = useState({});
+  const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(true);
 
-  // ---------------------------------------------------
-  // Load exam + questions + student answers
-  // ---------------------------------------------------
+  // Load from LocalStorage
   useEffect(() => {
-    async function load() {
-      try {
-        // 1. Exam info
-        const examRes = await fetch(`${API_URL}/exams/${exam_id}`);
-        const examData = await examRes.json();
-        setExam(examData);
+    const q = localStorage.getItem(cacheKeyQuestions);
+    const a = localStorage.getItem(cacheKeyAnswers);
 
-        // 2. Questions list
-        const qRes = await fetch(`${API_URL}/exams/${exam_id}/questions`);
-        const qData = await qRes.json();
-        setQuestions(qData);
+    if (q) setQuestions(JSON.parse(q));
+    if (a) setAnswers(JSON.parse(a));
 
-        // 3. Student answers
-        const studentRes = await fetch(
-          `${API_URL}/students/${exam_id}/${student_id}`
-        );
-        const studentData = await studentRes.json();
+    setLoading(false);
+  }, []);
 
-        setStudentAnswers(
-          (studentData.answers || []).map((a: any) => ({
-            questionId: a.questionId,
-            response: Array.isArray(a.response)
-              ? a.response
-              : [a.response ?? ""],
-          }))
-        );
-      } catch (err) {
-        console.error("Error loading exam:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    load();
-  }, [exam_id, student_id]);
-
-  // ---------------------------------------------------
-  // Helpers
-  // ---------------------------------------------------
-  const getAnswer = (qid: number) =>
-    studentAnswers.find((a) => a.questionId === qid)?.response;
-
-  const isCorrectAnswer = (q: Question, answer?: string[]) => {
-    if (!answer || answer.length === 0) return false;
-
-    if (q.type === "multiple_choice")
-      return q.correctAnswers.includes(answer[0]);
-
-    if (q.type === "multiple_correct") {
-      if (answer.length !== q.correctAnswers.length) return false;
-      return q.correctAnswers.every((x) => answer.includes(x));
-    }
-
-    if (q.type === "fill_blank" || q.type === "text_answer") {
-      const a = answer[0].trim().toLowerCase();
-      return q.correctAnswers.some((c) => c.trim().toLowerCase() === a);
-    }
-
-    return false;
-  };
-
-  // ---------------------------------------------------
-  // UI — Loading / No Data
-  // ---------------------------------------------------
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        ⏳ Ачаалж байна…
+      <div className="min-h-screen flex justify-center items-center text-lg">
+        ⏳ Хариултууд ачаалж байна...
       </div>
     );
 
-  if (!exam || questions.length === 0)
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        ❌ Мэдээлэл олдсонгүй.
-        <Link to="/team6/student" className="underline ml-3">
-          Буцах
-        </Link>
-      </div>
-    );
+  const questionList = Object.values(questions);
 
-  // ---------------------------------------------------
-  // UI — RESULT PAGE
-  // ---------------------------------------------------
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow">
         <Link
-          to={`/team6/exams/${exam_id}/students/${student_id}/result`}
+          to={`/team6/exams/${exam_id}`}
           className="text-gray-600 hover:text-black"
         >
           ← Буцах
         </Link>
 
-        <h1 className="text-3xl font-bold mt-4 mb-1">Таны хариултууд</h1>
-        <p className="mb-6 text-gray-600">{exam.name}</p>
+        <h1 className="text-3xl font-bold mt-4 mb-2">Таны хариултууд</h1>
+        <p className="text-gray-600 mb-6">Шалгалтын дугаар: {exam_id}</p>
 
         <div className="space-y-6">
-          {questions.map((q, index) => {
-            const answer = getAnswer(q.id);
-            const correct = isCorrectAnswer(q, answer);
+          {questionList.map((q: any, index: number) => {
+            const ans = answers[q.id] || [];
 
             return (
-              <div
-                key={q.id}
-                className={`p-5 rounded-xl border-2 ${
-                  correct
-                    ? "border-green-300 bg-green-50"
-                    : "border-red-300 bg-red-50"
-                }`}
-              >
+              <div key={q.id} className="p-5 rounded-xl border bg-gray-50">
                 <h3 className="text-lg font-semibold mb-2">
                   {index + 1}. {q.question}
                 </h3>
 
                 {q.image && (
-                  <img src={q.image} className="w-72 rounded border mb-3" />
+                  <img src={q.image} className="w-72 border rounded mb-3" />
                 )}
 
-                <p className="font-medium text-gray-700 text-sm">
+                <p className="text-sm font-medium text-gray-700">
                   Таны хариулт:
                 </p>
-                <p
-                  className={`font-semibold ${
-                    correct ? "text-green-700" : "text-red-700"
-                  }`}
-                >
-                  {answer?.length ? answer.join(", ") : "—"}
+                <p className="text-lg font-semibold text-blue-700">
+                  {ans.length ? ans.join(", ") : "—"}
                 </p>
-
-                {!correct && (
-                  <div className="p-3 mt-3 rounded border bg-white">
-                    <p className="font-medium text-green-700">✓ Зөв хариулт:</p>
-                    <p className="font-semibold text-green-800">
-                      {q.correctAnswers.join(", ")}
-                    </p>
-                  </div>
-                )}
               </div>
             );
           })}
         </div>
 
         <div className="mt-10 flex justify-center">
-          <Link
-            to={`/team6/exams/${exam_id}/students/${student_id}/result`}
+          <button
+            onClick={() =>
+              navigate(`/team6/exams/${exam_id}/students/${student_id}/result`)
+            }
             className="px-6 py-3 bg-black text-white rounded-lg"
           >
-            Үр дүн рүү буцах
-          </Link>
+            Үр дүн рүү шилжих
+          </button>
         </div>
       </div>
     </div>

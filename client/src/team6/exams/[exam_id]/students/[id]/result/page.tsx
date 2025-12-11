@@ -1,227 +1,133 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-
-interface StudentAnswer {
-  questionId: number;
-  response: string[];
-}
-
-interface StudentExam {
-  exam_id: number;
-  student_id: number;
-  answers: StudentAnswer[];
-  score?: number;
-}
-
-interface Question {
-  id: number;
-  question: string;
-  options?: string[];
-  correctAnswers: string[];
-  type: string;
-  marks: number;
-  image?: string;
-}
+import { useParams, Link, useNavigate } from "react-router-dom";
 
 export default function CheckExamPage() {
   const { exam_id, student_id } = useParams();
+  const navigate = useNavigate();
 
-  const API_URL = "http://localhost:3001";
-
-  const [exam, setExam] = useState<any>(null);
-  const [studentExam, setStudentExam] = useState<StudentExam | null>(null);
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [score, setScore] = useState<number>(0);
+  const [exam, setExam] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [studentAnswers, setStudentAnswers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ---------------------
-  // 🔥 API FETCH SECTION
-  // ---------------------
+  const API = "http://localhost:3001/api/lms";
+  const API_STUDENT = "http://localhost:3001/api/students";
+
   useEffect(() => {
     async function load() {
       try {
-        // 1. exam info
-        const examRes = await fetch(`${API_URL}/exams/${exam_id}`);
-        const examData = await examRes.json();
+        // 1) exam info
+        const resExam = await fetch(`${API}/exams/${exam_id}`);
+        const examData = await resExam.json();
         setExam(examData);
 
-        // 2. student answers
-        const studentRes = await fetch(
-          `${API_URL}/students/${exam_id}/${student_id}`
-        );
-        const studentData = await studentRes.json();
-        setStudentExam(studentData);
+        // 2) question groups
+        const resGroup = await fetch(`${API}/exams/${exam_id}/questions`);
+        const groups = await resGroup.json();
 
-        // 3. questions of exam
-        const qRes = await fetch(`${API_URL}/exams/${exam_id}/questions`);
-        const qData = await qRes.json();
-        setQuestions(qData);
+        // 3) load real questions
+        const fullQuestions = [];
+        for (const g of groups.items) {
+          const qRes = await fetch(`${API}/questions/${g.id}`);
+          const qData = await qRes.json();
 
-        // 4. calculate score
-        let correct = 0;
-        qData.forEach((q: Question) => {
-          const ans = studentData.answers?.find(
-            (x: StudentAnswer) => x.questionId === q.id
-          )?.response;
+          fullQuestions.push({
+            id: qData.id,
+            question: qData.question,
+            options: qData.option?.options || [],
+            type_id: qData.type_id,
+            image: qData.image || null,
+          });
+        }
 
-          const isCorrect =
-            ans &&
-            q.correctAnswers.length === ans.length &&
-            q.correctAnswers.every((x) => ans.includes(x));
+        setQuestions(fullQuestions);
 
-          if (isCorrect) correct++;
-        });
+        // 4) load student's submitted answers
+        const resStu = await fetch(`${API_STUDENT}/${exam_id}/${student_id}`);
+        const stuData = await resStu.json();
 
-        const calculated =
-          Math.round((correct / qData.length) * examData.totalMarks) || 0;
-
-        setScore(calculated);
-      } catch (err) {
-        console.log("API fetch error:", err);
+        setStudentAnswers(stuData.answers || []);
+      } catch (e) {
+        console.error("Check page load error:", e);
       } finally {
         setLoading(false);
       }
     }
 
     load();
-  }, [examId, student_id]);
+  }, [exam_id, student_id]);
 
-  // ---------------------
-  // Loading / Not found
-  // ---------------------
+  const getAnswer = (qid) => {
+    const a = studentAnswers.find((x) => x.questionId === qid);
+    return a ? a.response : [];
+  };
+
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-600">
+      <div className="min-h-screen flex justify-center items-center">
         ⏳ Шалгалтын мэдээлэл ачаалж байна...
       </div>
     );
 
   if (!exam)
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-gray-600">
-        ❌ Шалгалтын мэдээлэл олдсонгүй.
-        <Link to="/team6/student" className="mt-4 underline">
+      <div className="min-h-screen flex flex-col justify-center items-center">
+        ❌ Шалгалт олдсонгүй
+        <Link className="underline mt-4" to="/team6">
           Буцах
         </Link>
       </div>
     );
 
-  // ---------------------
-  // UI
-  // ---------------------
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-sm p-8">
+      <div className="max-w-5xl mx-auto bg-white p-8 rounded-lg shadow">
         {/* Header */}
-        <div className="flex justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">{exam.title}</h1>
-            <p className="text-gray-600">{exam.description}</p>
-          </div>
-          <Link className="text-gray-600 hover:text-black" to="/team6/student">
-            ← Буцах
+        <div className="flex justify-between">
+          <h1 className="text-2xl font-bold">{exam.name}</h1>
+          <Link to="/team6" className="text-sm underline">
+            Буцах
           </Link>
         </div>
 
-        {/* Summary */}
-        <div className="p-4 bg-blue-50 border rounded-lg flex justify-between items-center mb-6">
-          <div>
-            <h2 className="text-lg font-semibold">🎯 Таны дүн</h2>
-            <p>
-              Оноо: {score}/{exam.totalMarks}
-            </p>
-          </div>
-          <div className="text-3xl font-bold">
-            {((score / exam.totalMarks) * 100).toFixed(0)}%
-          </div>
-        </div>
+        <p className="mt-2 text-gray-600">{questions.length} асуулттай</p>
 
-        {/* Question Review */}
-        <div className="space-y-6">
+        {/* Questions Review */}
+        <div className="mt-6 space-y-6">
           {questions.map((q, i) => {
-            const studentAnswer =
-              studentExam?.answers?.find((a) => a.questionId === q.id)
-                ?.response || [];
-
-            const isCorrect =
-              studentAnswer.length > 0 &&
-              q.correctAnswers.length === studentAnswer.length &&
-              q.correctAnswers.every((ans) => studentAnswer.includes(ans));
+            const ans = getAnswer(q.id);
 
             return (
-              <div
-                key={q.id}
-                className={`p-5 border-2 rounded-lg ${
-                  isCorrect
-                    ? "border-green-300 bg-green-50"
-                    : "border-red-300 bg-red-50"
-                }`}
-              >
-                {/* Question text */}
+              <div key={q.id} className="p-5 bg-gray-50 border rounded-lg">
                 <h3 className="font-semibold mb-2">
                   {i + 1}. {q.question}
                 </h3>
 
-                {/* Image */}
                 {q.image && (
-                  <img src={q.image} className="w-64 border rounded mb-3" />
+                  <img src={q.image} className="w-64 rounded border mb-3" />
                 )}
 
-                {/* Options */}
-                {q.options && q.options.length > 0 && (
-                  <ul className="list-disc ml-5 text-sm">
-                    {q.options.map((opt, idx) => (
-                      <li
-                        key={idx}
-                        className={
-                          studentAnswer.includes(opt)
-                            ? isCorrect
-                              ? "text-green-700 font-bold"
-                              : "text-red-700 font-bold"
-                            : ""
-                        }
-                      >
-                        {opt}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <p className="font-semibold text-sm text-gray-700">
+                  Таны хариулт:
+                </p>
 
-                {/* Correct / Your answer */}
-                <div className="text-sm mt-3">
-                  <p>
-                    🟢 Зөв:{" "}
-                    <span className="font-semibold">
-                      {q.correctAnswers.join(", ")}
-                    </span>
-                  </p>
-
-                  <p>
-                    🔵 Таны хариулт:{" "}
-                    <span
-                      className={`font-semibold ${
-                        isCorrect ? "text-green-700" : "text-red-700"
-                      }`}
-                    >
-                      {studentAnswer.length > 0
-                        ? studentAnswer.join(", ")
-                        : "—"}
-                    </span>
-                  </p>
-                </div>
+                <p className="text-blue-700 font-bold text-lg">
+                  {ans.length ? ans.join(", ") : "—"}
+                </p>
               </div>
             );
           })}
         </div>
 
-        {/* Footer */}
         <div className="mt-10 flex justify-center">
-          <Link
-            to="/team6"
-            className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition"
+          <button
+            onClick={() =>
+              navigate(`/team6/exams/${exam_id}/students/${student_id}/result`)
+            }
+            className="px-6 py-3 bg-black text-white rounded-lg"
           >
-            Буцах
-          </Link>
+            Үр дүн үзэх
+          </button>
         </div>
       </div>
     </div>
