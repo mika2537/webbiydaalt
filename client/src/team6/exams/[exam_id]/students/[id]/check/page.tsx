@@ -19,7 +19,7 @@ interface Question {
 export default function CheckExamPage() {
   const { exam_id, student_id } = useParams();
 
-  const API_URL = "http://localhost:3001";
+  const API_URL = "http://localhost:3001/api";
 
   const [exam, setExam] = useState<any>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -32,17 +32,41 @@ export default function CheckExamPage() {
   useEffect(() => {
     async function load() {
       try {
-        // 1. Exam info
-        const examRes = await fetch(`${API_URL}/exams/${exam_id}`);
+        // 1. Exam info from LMS
+        const examRes = await fetch(`${API_URL}/lms/exams/${exam_id}`);
         const examData = await examRes.json();
         setExam(examData);
 
-        // 2. Questions list
-        const qRes = await fetch(`${API_URL}/exams/${exam_id}/questions`);
-        const qData = await qRes.json();
-        setQuestions(qData);
+        // 2. Question references from backend
+        const qRefsRes = await fetch(`${API_URL}/exams/${exam_id}/questions`);
+        const qRefs = await qRefsRes.json();
 
-        // 3. Student answers
+        // 3. Load actual question details from LMS
+        const questionPromises = qRefs.map(async (ref: any) => {
+          const qRes = await fetch(
+            `${API_URL}/lms/questions/${ref.question_id}`
+          );
+          const qData = await qRes.json();
+
+          // Fix options field
+          if (qData.option && Array.isArray(qData.option.options)) {
+            qData.options = qData.option.options;
+          }
+
+          return {
+            id: ref.question_id,
+            question: qData.question,
+            type: qData.type_id === 10 ? "true_false" : "multiple_choice",
+            options: qData.options || [],
+            correctAnswers: qData.correct_answers || [],
+            marks: ref.point || 10,
+          };
+        });
+
+        const loadedQuestions = await Promise.all(questionPromises);
+        setQuestions(loadedQuestions);
+
+        // 4. Student answers
         const studentRes = await fetch(
           `${API_URL}/students/${exam_id}/${student_id}`
         );

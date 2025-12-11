@@ -1,57 +1,198 @@
+const LMS_API = "https://todu.mn/bs/lms/v1";
+
+function getHeaders() {
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${process.env.LMS_TOKEN}`,
+  };
+}
 export async function getAllExams() {
-  return Exams;
+  try {
+    const res = await fetch(`${LMS_API}/exams`, {
+      headers: getHeaders(),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return await res.json();
+  } catch (err) {
+    console.error("GET ALL EXAMS ERROR:", err);
+    return { items: [], error: err.message };
+  }
 }
 
-let Exams = []; // local memory (optional)
-
 export async function createExam(data) {
-  const url = `https://todu.mn/bs/lms/v1/courses/${data.courseId}/exams`;
+  const url = `${LMS_API}/courses/${data.courseId}/exams`;
 
   const body = {
     name: data.name,
-    description: data.description,
+    description: data.description || "",
     open_on: data.open_on,
     close_on: data.close_on,
-    end_on: data.end_on,
-    duration: data.duration,
-    total_point: data.total_point,
-    grade_point: data.grade_point,
-    max_attempt: data.max_attempt,
-    point_expression: data.point_expression,
+    end_on: data.end_on || data.close_on,
+    duration: String(data.duration || 60),
+    total_point: String(data.total_point || 100),
+    grade_point: String(data.grade_point || 30),
+    max_attempt: String(data.max_attempt || 1),
+    point_expression: data.point_expression || "",
   };
+
+  console.log("📤 CREATE EXAM REQUEST:", { url, body });
 
   const res = await fetch(url, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.LMS_TOKEN}`,
-    },
+    headers: getHeaders(),
     body: JSON.stringify(body),
   });
 
   if (!res.ok) {
     const errorText = await res.text();
-    console.error("TODU CREATE EXAM ERROR:", errorText);
+    console.error("❌ TODU CREATE EXAM ERROR:", errorText);
     throw new Error(errorText);
   }
 
-  return await res.json();
+  const result = await res.json();
+  console.log("✅ EXAM CREATED:", result);
+  return result;
 }
+
+// ------------------------------
+// GET SINGLE EXAM (from LMS)
+// ------------------------------
 export async function getExam(id) {
-  return Exams.find((x) => x.id === id);
+  try {
+    const res = await fetch(`${LMS_API}/exams/${id}`, {
+      headers: getHeaders(),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return await res.json();
+  } catch (err) {
+    console.error("GET EXAM ERROR:", err);
+    return { error: err.message };
+  }
 }
 
+// ------------------------------
+// UPDATE EXAM (PUT to LMS)
+// ------------------------------
 export async function updateExam(id, data) {
-  const index = Exams.findIndex((x) => x.id === id);
-  if (index === -1) return null;
+  const url = `${LMS_API}/exams/${id}`;
 
-  Exams[index] = { ...Exams[index], ...data };
-  return Exams[index];
+  const body = {
+    name: data.name,
+    description: data.description || "",
+    open_on: data.open_on,
+    close_on: data.close_on,
+    end_on: data.end_on || data.close_on,
+    duration: String(data.duration || 60),
+    total_point: String(data.total_point || 100),
+    grade_point: String(data.grade_point || 30),
+    max_attempt: String(data.max_attempt || 1),
+    point_expression: data.point_expression || "",
+  };
+
+  console.log("📤 UPDATE EXAM REQUEST:", { url, body });
+
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: getHeaders(),
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error("❌ TODU UPDATE EXAM ERROR:", errorText);
+    throw new Error(errorText);
+  }
+
+  const result = await res.json();
+  console.log("✅ EXAM UPDATED:", result);
+  return result;
 }
 
+// ------------------------------
+// DELETE EXAM (DELETE from LMS)
+// ------------------------------
+export async function deleteExam(id) {
+  const url = `${LMS_API}/exams/${id}`;
+
+  console.log("📤 DELETE EXAM REQUEST:", { url });
+
+  const res = await fetch(url, {
+    method: "DELETE",
+    headers: getHeaders(),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error("❌ TODU DELETE EXAM ERROR:", errorText);
+    throw new Error(errorText);
+  }
+
+  console.log("✅ EXAM DELETED:", id);
+  return { success: true, id };
+}
+
+// ------------------------------
+// GET EXAM REPORT
+// ------------------------------
 export async function getExamReport(id) {
+  try {
+    // Try to get exam stats from LMS
+    const res = await fetch(`${LMS_API}/exams/${id}/users`, {
+      headers: getHeaders(),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const users = data.items || [];
+      const passed = users.filter((u) => u.passed).length;
+
+      return {
+        examId: id,
+        stats: {
+          total: users.length,
+          passed: passed,
+          failed: users.length - passed,
+        },
+        users: users,
+      };
+    }
+  } catch (err) {
+    console.error("GET EXAM REPORT ERROR:", err);
+  }
+
   return {
     examId: id,
     stats: { total: 0, passed: 0, failed: 0 },
+    users: [],
   };
+}
+
+// ------------------------------
+// IN-MEMORY DATABASE FOR EXAM QUESTIONS
+// ------------------------------
+let ExamQuestions = []; // { exam_id, question_id, point, priority }
+
+// ------------------------------
+// GET EXAM QUESTIONS
+// ------------------------------
+export function getExamQuestions(exam_id) {
+  const questions = ExamQuestions.filter((q) => q.exam_id == exam_id);
+  console.log(`✅ GET EXAM ${exam_id} QUESTIONS:`, questions);
+  return questions;
+}
+
+// ------------------------------
+// ADD QUESTION TO EXAM
+// ------------------------------
+export function addQuestionToExam(exam_id, data) {
+  const newQuestion = {
+    exam_id: exam_id,
+    question_id: data.question_id,
+    point: data.point || 10,
+    priority: data.priority || 1,
+  };
+
+  ExamQuestions.push(newQuestion);
+  console.log(`✅ ADDED QUESTION ${data.question_id} TO EXAM ${exam_id}`);
+  return newQuestion;
 }

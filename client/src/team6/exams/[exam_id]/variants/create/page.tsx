@@ -27,7 +27,8 @@ export default function CreateVariantPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/variants/${exam_id}`, {
+      // POST /api/exams/:exam_id/variants
+      const res = await fetch(`${API_URL}/exams/${exam_id}/variants`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -36,15 +37,52 @@ export default function CreateVariantPage() {
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to create variant");
+      const data = await res.json();
 
-      setMessage("Амжилттай нэмэгдлээ!");
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create variant");
+      }
+
+      const variantId = data.id;
+
+      // Check if there are pending questions from exam creation
+      const pendingQuestions = sessionStorage.getItem("pendingExamQuestions");
+
+      if (pendingQuestions) {
+        const questionIds = JSON.parse(pendingQuestions);
+
+        // Add each question to the variant
+        for (const questionId of questionIds) {
+          try {
+            await fetch(`${API_URL}/variants/${variantId}/questions`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                question_id: questionId,
+                point: 10,
+                priority: 1,
+              }),
+            });
+          } catch (err) {
+            console.error(`Failed to add question ${questionId}:`, err);
+          }
+        }
+
+        // Clear session storage
+        sessionStorage.removeItem("pendingExamQuestions");
+        sessionStorage.removeItem("pendingExamId");
+
+        setMessage("Вариант болон асуултууд амжилттай нэмэгдлээ!");
+      } else {
+        setMessage("Амжилттай нэмэгдлээ!");
+      }
+
       setForm({ name: "", description: "" });
 
-      setTimeout(() => navigate(`/team6/exams/${exam_id}/variants`), 1200);
-    } catch (error) {
+      setTimeout(() => navigate(`/team6/exams/${exam_id}`), 1500);
+    } catch (error: any) {
       console.error("❌ Вариант үүсгэхэд алдаа:", error);
-      setMessage("⚠️ Вариант үүсгэхэд алдаа гарлаа!");
+      setMessage(`⚠️ ${error.message || "Вариант үүсгэхэд алдаа гарлаа!"}`);
     } finally {
       setLoading(false);
     }

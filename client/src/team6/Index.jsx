@@ -18,6 +18,7 @@ import VariantEditPage from "./exams/[exam_id]/variants/[id]/edit/page.tsx";
 
 // STUDENT PAGES
 import StudentDetailPage from "./students/exams/list/page.jsx"; // ✅ FIXED
+import StudentExamStartPage from "./exams/[exam_id]/students/[id]/page.tsx";
 import StudentTakePage from "./exams/[exam_id]/students/[id]/take/page.tsx";
 import StudentCheckPage from "./exams/[exam_id]/students/[id]/check/page.tsx";
 import StudentResultPage from "./exams/[exam_id]/students/[id]/result/page.tsx";
@@ -32,9 +33,9 @@ export default function Index() {
       <Route index element={<Team6Home />} />
 
       {/* COURSE EXAMS */}
-      <Route path="courses/:courseId/exams" element={<ExamsPage />} />
+      <Route path="courses/:course_id/exams" element={<ExamsPage />} />
       <Route
-        path="courses/:courseId/exams/create"
+        path="courses/:course_id/exams/create"
         element={<CreateExamPage />}
       />
 
@@ -56,6 +57,12 @@ export default function Index() {
       <Route
         path="exams/:exam_id/variants/:id/edit"
         element={<VariantEditPage />}
+      />
+
+      {/* STUDENT EXAM START/INFO PAGE */}
+      <Route
+        path="exams/:exam_id/students/:id"
+        element={<StudentExamStartPage />}
       />
 
       {/* STUDENT TAKE EXAM */}

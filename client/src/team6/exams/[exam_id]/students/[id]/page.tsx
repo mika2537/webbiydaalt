@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import BackButton from "../../../../components/BackButton";
 
-const LMS_API = "https://todu.mn/bs/lms/v1";
-const LMS_TOKEN = "m9ewS9t9mMzr3np2pZQVeQ";
+const API_URL = "http://localhost:3001/api";
 
 export default function StudentExamStartPage() {
   const { exam_id, id } = useParams();
@@ -17,9 +16,8 @@ export default function StudentExamStartPage() {
   useEffect(() => {
     async function load() {
       try {
-        const examRes = await fetch(`${LMS_API}/exams/${exam_id}`, {
+        const examRes = await fetch(`${API_URL}/lms/exams/${exam_id}`, {
           headers: {
-            Authorization: `Bearer ${LMS_TOKEN}`,
             "Content-Type": "application/json",
             Accept: "application/json",
           },
@@ -31,10 +29,9 @@ export default function StudentExamStartPage() {
         setExam(examData);
 
         const courseRes = await fetch(
-          `${LMS_API}/courses/${examData.course_id}/users`,
+          `${API_URL}/lms/courses/${examData.course_id}/users`,
           {
             headers: {
-              Authorization: `Bearer ${LMS_TOKEN}`,
               "Content-Type": "application/json",
               Accept: "application/json",
             },

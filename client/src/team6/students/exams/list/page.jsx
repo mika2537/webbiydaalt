@@ -1,28 +1,24 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
+const API_URL = "http://localhost:3001/api";
+
 export default function StudentDetailPage() {
   const { student_id } = useParams();
-  const TOKEN = import.meta.env.VITE_LMS_TOKEN;
 
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
-      console.log("Using token:", TOKEN);
-
       try {
-        const res = await fetch(
-          `https://todu.mn/bs/lms/v1/users/${student_id}/exams`,
-          {
-            method: "GET",
-            headers: {
-              Accept: "application/json",
-              Authorization: `Bearer ${TOKEN}`,
-            },
-          }
-        );
+        const res = await fetch(`${API_URL}/lms/users/${student_id}/exams`, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        });
 
         console.log("STATUS:", res.status);
 
@@ -45,7 +41,7 @@ export default function StudentDetailPage() {
     }
 
     load();
-  }, [student_id, TOKEN]);
+  }, [student_id]);
 
   if (loading)
     return (
@@ -95,7 +91,7 @@ export default function StudentDetailPage() {
               </div>
 
               <Link
-                to={`/team6/exams/${exam.id}/students/${student_id}/take`}
+                to={`/team6/exams/${exam.id}/students/${student_id}`}
                 className="px-5 py-3 bg-black text-white rounded-lg hover:bg-gray-800"
               >
                 ▶ Шалгалт эхлүүлэх

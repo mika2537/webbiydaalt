@@ -14,7 +14,7 @@ interface Variant {
 }
 
 export default function VariantListPage() {
-  const { examId } = useParams();
+  const { exam_id } = useParams();
   const navigate = useNavigate();
 
   const [variants, setVariants] = useState<Variant[]>([]);
@@ -24,7 +24,7 @@ export default function VariantListPage() {
   useEffect(() => {
     const loadVariants = async () => {
       try {
-        const res = await fetch(`${API_URL}/exams/${examId}/variants`);
+        const res = await fetch(`${API_URL}/exams/${exam_id}/variants`);
         if (!res.ok) throw new Error("Failed to load variants");
 
         const data = await res.json();

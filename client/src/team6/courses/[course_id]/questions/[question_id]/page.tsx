@@ -23,7 +23,7 @@ interface Topic {
 }
 
 export default function QuestionDetailPage() {
-  const { courseId, question_id } = useParams();
+  const { course_id, question_id } = useParams();
   const [question, setQuestion] = useState<Question | null>(null);
   const [topic, setTopic] = useState<Topic | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,7 +48,7 @@ export default function QuestionDetailPage() {
     };
 
     loadQuestion();
-  }, [questionId]);
+  }, [question_id]);
 
   if (loading) {
     return (

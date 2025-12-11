@@ -40,8 +40,8 @@ Accept: application/json
 }
 
 ###
-GET https://todu.mn/bs/lms/v1/users/me
-Authorization: Bearer ry6qY8CF-3f0mSj47ThzzQ
+GET https://todu.mn/bs/lms/v1/courses/200/exams
+Authorization: Bearer FoKqZEJV0d6AHw3sRlRLaw
 Content-Type: application/json
 Accept: application/json
 

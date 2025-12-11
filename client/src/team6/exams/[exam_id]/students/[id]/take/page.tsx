@@ -1,13 +1,31 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 
+interface Exam {
+  id: number;
+  name: string;
+  description?: string;
+  duration: number;
+  total_point: number;
+}
+
+interface Question {
+  id: number;
+  question: string;
+  type_id: number;
+  options?: string[];
+  option?: {
+    options: string[];
+  };
+}
+
 export default function TakeExamPage() {
   const { exam_id, student_id } = useParams();
   const navigate = useNavigate();
 
-  const [exam, setExam] = useState(null);
-  const [questions, setQuestions] = useState([]);
-  const [answers, setAnswers] = useState({});
+  const [exam, setExam] = useState<Exam | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [answers, setAnswers] = useState<Record<number, string[]>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,21 +40,31 @@ export default function TakeExamPage() {
         const examData = await examRes.json();
         setExam(examData);
 
-        // 2️⃣ Load exam question groups
-        const groupRes = await fetch(
-          `http://localhost:3001/api/lms/exams/${exam_id}/questions`
+        // 2️⃣ Load questions from backend database
+        const examQuestionsRes = await fetch(
+          `http://localhost:3001/api/exams/${exam_id}/questions`
         );
-        const groupData = await groupRes.json();
-        const groups = groupData.items || [];
+        const examQuestionsData = await examQuestionsRes.json();
+        const questionRefs = Array.isArray(examQuestionsData)
+          ? examQuestionsData
+          : [];
 
-        // 3️⃣ Load REAL QUESTION for each group.id
+        console.log("Exam questions from backend:", questionRefs);
+
+        if (questionRefs.length === 0) {
+          console.error("❌ No questions found for this exam");
+          setLoading(false);
+          return;
+        }
+
+        // 3️⃣ Load REAL QUESTION details from LMS for each question_id
         let finalQuestions = [];
 
-        for (const group of groups) {
-          const { id } = group; // <-- This is the question ID
+        for (const ref of questionRefs) {
+          const questionId = ref.question_id || ref.id;
 
           const qRes = await fetch(
-            `http://localhost:3001/api/lms/questions/${id}`
+            `http://localhost:3001/api/lms/questions/${questionId}`
           );
 
           const qData = await qRes.json();
@@ -52,6 +80,7 @@ export default function TakeExamPage() {
           finalQuestions.push(q);
         }
 
+        console.log("Final questions loaded:", finalQuestions.length);
         setQuestions(finalQuestions);
       } catch (err) {
         console.error("❌ Error loading exam:", err);
@@ -64,7 +93,7 @@ export default function TakeExamPage() {
   }, [exam_id]);
 
   // Save answer
-  const updateAnswer = (qid, value) => {
+  const updateAnswer = (qid: number, value: string) => {
     setAnswers((prev) => ({
       ...prev,
       [qid]: [value],
