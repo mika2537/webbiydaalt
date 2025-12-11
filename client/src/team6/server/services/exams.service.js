@@ -4,6 +4,7 @@ export async function getAllExams() {
 
 let Exams = []; // local memory (optional)
 
+// CREATE REAL EXAM ON TODU API
 export async function createExam(data) {
   const url = `https://todu.mn/bs/lms/v1/courses/${data.courseId}/exams`;
 
@@ -35,14 +36,20 @@ export async function createExam(data) {
     throw new Error(errorText);
   }
 
-  return await res.json();
+  const created = await res.json();
+
+  // Save locally if needed
+  Exams.push(created);
+
+  return created;
 }
+
 export async function getExam(id) {
-  return Exams.find((x) => x.id === id);
+  return Exams.find((x) => x.id == id);
 }
 
 export async function updateExam(id, data) {
-  const index = Exams.findIndex((x) => x.id === id);
+  const index = Exams.findIndex((x) => x.id == id);
   if (index === -1) return null;
 
   Exams[index] = { ...Exams[index], ...data };

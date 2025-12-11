@@ -5,16 +5,25 @@ export async function getAllExams(req, res) {
 }
 
 export async function createExam(req, res) {
-  res.json(await ExamsService.createExam(req.body));
+  try {
+    const exam = await ExamsService.createExam(req.body);
+    res.json(exam);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 }
+
 export async function getExam(req, res) {
-  res.json(await ExamsService.getExam(req.params.exam_id));
+  const exam = await ExamsService.getExam(req.params.id);
+  res.json(exam);
 }
 
 export async function updateExam(req, res) {
-  res.json(await ExamsService.updateExam(req.params.exam_id, req.body));
+  const result = await ExamsService.updateExam(req.params.id, req.body);
+  res.json(result);
 }
 
 export async function getExamReport(req, res) {
-  res.json(await ExamsService.getExamReport(req.params.exam_id));
+  const report = await ExamsService.getExamReport(req.params.id);
+  res.json(report);
 }

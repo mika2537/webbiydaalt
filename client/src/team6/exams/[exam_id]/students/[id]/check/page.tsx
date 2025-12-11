@@ -5,64 +5,109 @@ export default function CheckExamPage() {
   const { exam_id, student_id } = useParams();
   const navigate = useNavigate();
 
-  const cacheKeyQuestions = `exam_${exam_id}_questions`;
-  const cacheKeyAnswers = `exam_${exam_id}_answers`;
-
-  const [questions, setQuestions] = useState({});
-  const [answers, setAnswers] = useState({});
+  const [exam, setExam] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [studentAnswers, setStudentAnswers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Load from LocalStorage
+  const API = "http://localhost:3001/api/lms";
+  const API_STUDENT = "http://localhost:3001/api/students";
+
   useEffect(() => {
-    const q = localStorage.getItem(cacheKeyQuestions);
-    const a = localStorage.getItem(cacheKeyAnswers);
+    async function load() {
+      try {
+        // 1) exam info
+        const resExam = await fetch(`${API}/exams/${exam_id}`);
+        const examData = await resExam.json();
+        setExam(examData);
 
-    if (q) setQuestions(JSON.parse(q));
-    if (a) setAnswers(JSON.parse(a));
+        // 2) question groups (from LMS via proxy)
+        const resGroup = await fetch(
+          `${API}/exams/${exam_id}/questions?student_id=${student_id}`
+        );
+        const groups = await resGroup.json();
 
-    setLoading(false);
-  }, []);
+        const fullQuestions = [];
+        for (const g of groups.items || []) {
+          // fetch real question detail
+          const qRes = await fetch(`${API}/questions/${g.id}`);
+          const qData = await qRes.json();
+
+          fullQuestions.push({
+            id: qData.id,
+            question: qData.question,
+            options: qData.option || qData.options || [],
+            type_id: qData.type_id,
+            image: qData.image || null,
+            point: qData.point || 0,
+          });
+        }
+
+        setQuestions(fullQuestions);
+
+        // 3) load student's submitted answers from local students service
+        const resStu = await fetch(`${API_STUDENT}/${exam_id}/${student_id}`);
+        const stuData = await resStu.json();
+        setStudentAnswers(stuData.answers || []);
+      } catch (e) {
+        console.error("Check page load error:", e);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    load();
+  }, [exam_id, student_id]);
+
+  const getAnswer = (qid) => {
+    const a = studentAnswers.find((x) => x.questionId === qid);
+    return a ? a.response : [];
+  };
 
   if (loading)
     return (
-      <div className="min-h-screen flex justify-center items-center text-lg">
-        ⏳ Хариултууд ачаалж байна...
+      <div className="min-h-screen flex justify-center items-center">
+        ⏳ Шалгалтын мэдээлэл ачаалж байна...
       </div>
     );
 
-  const questionList = Object.values(questions);
+  if (!exam)
+    return (
+      <div className="min-h-screen flex flex-col justify-center items-center">
+        ❌ Шалгалт олдсонгүй
+        <Link className="underline mt-4" to="/team6">
+          Буцах
+        </Link>
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow">
-        <Link
-          to={`/team6/exams/${exam_id}`}
-          className="text-gray-600 hover:text-black"
-        >
-          ← Буцах
-        </Link>
+      <div className="max-w-5xl mx-auto bg-white p-8 rounded-lg shadow">
+        <div className="flex justify-between">
+          <h1 className="text-2xl font-bold">{exam.name}</h1>
+          <Link to="/team6" className="text-sm underline">
+            Буцах
+          </Link>
+        </div>
 
-        <h1 className="text-3xl font-bold mt-4 mb-2">Таны хариултууд</h1>
-        <p className="text-gray-600 mb-6">Шалгалтын дугаар: {exam_id}</p>
+        <p className="mt-2 text-gray-600">{questions.length} асуулттай</p>
 
-        <div className="space-y-6">
-          {questionList.map((q: any, index: number) => {
-            const ans = answers[q.id] || [];
-
+        <div className="mt-6 space-y-6">
+          {questions.map((q, i) => {
+            const ans = getAnswer(q.id);
             return (
-              <div key={q.id} className="p-5 rounded-xl border bg-gray-50">
-                <h3 className="text-lg font-semibold mb-2">
-                  {index + 1}. {q.question}
+              <div key={q.id} className="p-5 bg-gray-50 border rounded-lg">
+                <h3 className="font-semibold mb-2">
+                  {i + 1}. {q.question}
                 </h3>
-
                 {q.image && (
-                  <img src={q.image} className="w-72 border rounded mb-3" />
+                  <img src={q.image} className="w-64 rounded border mb-3" />
                 )}
-
-                <p className="text-sm font-medium text-gray-700">
+                <p className="font-semibold text-sm text-gray-700">
                   Таны хариулт:
                 </p>
-                <p className="text-lg font-semibold text-blue-700">
+                <p className="text-blue-700 font-bold text-lg">
                   {ans.length ? ans.join(", ") : "—"}
                 </p>
               </div>
@@ -77,7 +122,7 @@ export default function CheckExamPage() {
             }
             className="px-6 py-3 bg-black text-white rounded-lg"
           >
-            Үр дүн рүү шилжих
+            Үр дүн үзэх
           </button>
         </div>
       </div>

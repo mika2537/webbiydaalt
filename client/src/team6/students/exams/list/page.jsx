@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 
 export default function StudentDetailPage() {
   const { student_id } = useParams();
+  const navigate = useNavigate();
   const TOKEN = import.meta.env.VITE_LMS_TOKEN;
 
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Load user exams
   useEffect(() => {
     async function load() {
-      console.log("Using token:", TOKEN);
-
       try {
         const res = await fetch(
-          `https://todu.mn/bs/lms/v1/users/${student_id}/exams`,
+          `https://todu.mn/bs/lms/v1/users/me/exams?current_user=${student_id}`,
           {
             method: "GET",
             headers: {
@@ -24,21 +24,16 @@ export default function StudentDetailPage() {
           }
         );
 
-        console.log("STATUS:", res.status);
-
         if (!res.ok) {
-          console.error("❌ FAILED:", res.status);
-          setExams([]); // prevents undefined
+          setExams([]);
           setLoading(false);
           return;
         }
 
         const data = await res.json();
-        console.log("DATA:", data);
-
         setExams(data.items || []);
       } catch (err) {
-        console.error("❌ Error loading:", err);
+        console.error("Load error:", err);
       }
 
       setLoading(false);
@@ -46,6 +41,35 @@ export default function StudentDetailPage() {
 
     load();
   }, [student_id, TOKEN]);
+
+  // ---------- START EXAM (POST) ----------
+  const startExam = async (examId) => {
+    try {
+      const res = await fetch(
+        `https://todu.mn/bs/lms/v1/users/me/exams/${examId}`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${TOKEN}`,
+          },
+          body: JSON.stringify({
+            current_user: student_id,
+          }),
+        }
+      );
+
+      const data = await res.json();
+      console.log("Exam started:", data);
+
+      navigate(`/team6/exams/${examId}/students/${student_id}/take`, {
+        state: { attempt: data },
+      });
+    } catch (err) {
+      console.error("Start exam failed:", err);
+    }
+  };
 
   if (loading)
     return (
@@ -60,9 +84,7 @@ export default function StudentDetailPage() {
         <h1 className="text-3xl font-bold">🧑‍🎓 Таны шалгалтууд</h1>
 
         {exams.length === 0 && (
-          <div className="text-gray-500">
-            ❌ Шалгалт олдсонгүй (Token буруу байж магадгүй)
-          </div>
+          <div className="text-gray-500">❌ Шалгалт олдсонгүй</div>
         )}
 
         {exams.map((exam) => (
@@ -76,30 +98,15 @@ export default function StudentDetailPage() {
                 <p className="text-gray-600">
                   Курс: {exam.course?.name || "N/A"}
                 </p>
-
-                <p className="text-sm text-gray-500 mt-1">
-                  Нийт оноо: {exam.total_point} / Тэнцэх: {exam.grade_point}
-                </p>
-
-                <p className="text-sm text-gray-500">
-                  Хугацаа: {exam.duration} минут
-                </p>
-
-                <p className="text-sm text-gray-500">
-                  Эхлэх: {new Date(exam.open_on).toLocaleString("mn-MN")}
-                </p>
-
-                <p className="text-sm text-gray-500">
-                  Дуусах: {new Date(exam.close_on).toLocaleString("mn-MN")}
-                </p>
               </div>
 
-              <Link
-                to={`/team6/exams/${exam.id}/students/${student_id}/take`}
+              {/* Replace Link → Button with POST request */}
+              <button
+                onClick={() => startExam(exam.id)}
                 className="px-5 py-3 bg-black text-white rounded-lg hover:bg-gray-800"
               >
                 ▶ Шалгалт эхлүүлэх
-              </Link>
+              </button>
             </div>
           </div>
         ))}
