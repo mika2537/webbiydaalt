@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
-import { connectDB } from "./config/database.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,18 +31,14 @@ import studentsRoutes from "./routes/students.routes.js";
 import lmsProxyRoutes from "./routes/lms.proxy.routes.js";
 import coursesRoutes from "./routes/courses.routes.js";
 import variantsRoutes from "./routes/variants.routes.js";
-import statisticsRoutes from "./routes/statistics.routes.js";
 
 app.use("/api/exams", examsRoutes);
 app.use("/api/students", studentsRoutes);
 app.use("/api/lms", lmsProxyRoutes);
 app.use("/api/courses", coursesRoutes);
 app.use("/api/variants", variantsRoutes);
-app.use("/api/statistics", statisticsRoutes);
 
 const PORT = process.env.PORT || 3001;
-
-await connectDB();
 
 app.listen(PORT, () => {
   console.log(`✅ Team6 API running on http://localhost:${PORT}`);

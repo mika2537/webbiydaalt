@@ -18,9 +18,11 @@ interface Question {
   id: number;
   course_id: number;
   question: string;
-  type: string;
-  point: number;
+  type_id: number;
   level_id: number;
+  option?: string[] | null;
+  answer?: any;
+  lesson_id?: number;
 }
 
 interface FormData {
@@ -60,7 +62,29 @@ export default function CreateExamPage() {
     max_attempt: 1,
   });
 
-  // Categorize questions by difficulty based on level_id from Swagger
+  // Helper functions
+  const getLevelName = (levelId: number): string => {
+    const levels: { [key: number]: string } = {
+      10: "Сэргээн санах",
+      20: "Ойлгох",
+      30: "Хэрэглэх",
+      40: "Задлан шинжлэх",
+      50: "Үнэлэх",
+      60: "Бүтээх",
+    };
+    return levels[levelId] || `Level ${levelId}`;
+  };
+
+  const getTypeName = (typeId: number): string => {
+    const types: { [key: number]: string } = {
+      10: "Үнэн/Худал",
+      20: "Нэг сонголттой",
+      30: "Олон сонголттой",
+      40: "Харгалзуулах",
+    };
+    return types[typeId] || `Type ${typeId}`;
+  };
+
   // ID 10 = Сэргээн санах, ID 20 = Ойлгох
   const easyQuestions = questionBank.filter(
     (q) => q.level_id === 10 || q.level_id === 20
@@ -92,7 +116,7 @@ export default function CreateExamPage() {
         setCourse(courseData);
 
         const questionsRes = await fetch(
-          `${API_URL}/courses/${course_id}/questions`
+          `${API_URL}/lms/courses/${course_id}/questions?limit=100`
         );
         const questionsData = await questionsRes.json();
         setQuestionBank(
@@ -153,6 +177,7 @@ export default function CreateExamPage() {
       return;
     }
 
+    // Шалгалт үүсгэх
     const newExam = {
       course_id: Number(course_id),
       name: formData.name,
@@ -164,49 +189,49 @@ export default function CreateExamPage() {
       close_on: `${formData.endDate}T${formData.endTime}:00Z`,
       end_on: `${formData.endDate}T${formData.endTime}:00Z`,
       duration: formData.duration,
-      question_ids: Array.from(selectedQuestionIds),
     };
 
     try {
-      const res = await fetch(`${API_URL}/courses/${course_id}/exams`, {
+      // 1. Шалгалт үүсгэх
+      const examRes = await fetch(`${API_URL}/lms/courses/${course_id}/exams`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newExam),
       });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to create exam");
+      if (!examRes.ok) {
+        const errorData = await examRes.json();
+        throw new Error(errorData.message || "Failed to create exam");
       }
 
-      const result = await res.json();
-      const newExamId = result.id;
+      const examResult = await examRes.json();
+      const newExamId = examResult.id;
 
-      // Add questions to backend database (not LMS)
-      for (const questionId of Array.from(selectedQuestionIds)) {
+      // 2. Асуултуудыг шалгалтанд нэмэх
+      // LMS-д асуулт нэмэх endpoint: POST /exams/:exam_id/questions
+      const questionsToAdd = Array.from(selectedQuestionIds).map(
+        (qid, idx) => ({
+          lesson_id: questionBank.find((q) => q.id === qid)?.lesson_id || 200,
+          level_id: questionBank.find((q) => q.id === qid)?.level_id || 10,
+          type_id: questionBank.find((q) => q.id === qid)?.type_id || 20,
+          quantity: 1,
+        })
+      );
+
+      for (const questionConfig of questionsToAdd) {
         try {
-          await fetch(
-            `http://localhost:3001/api/exams/${newExamId}/questions`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                question_id: questionId,
-                point: 10,
-                priority: 1,
-              }),
-            }
-          );
-          console.log(`✅ Added question ${questionId} to exam ${newExamId}`);
+          await fetch(`${API_URL}/lms/exams/${newExamId}/questions`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(questionConfig),
+          });
         } catch (err) {
-          console.error(`❌ Failed to add question ${questionId}:`, err);
+          console.error("Failed to add question:", err);
         }
       }
 
-      alert("Шалгалт амжилттай үүсгэлээ!");
-
-      // Redirect to exam list
-      navigate(`/team6/courses/${course_id}/exams`);
+      alert("✅ Шалгалт амжилттай үүсгэлээ!");
+      navigate(`/team6/exams/${newExamId}`);
     } catch (error: any) {
       console.error("Create error:", error);
       alert(`Алдаа гарлаа: ${error.message}`);
@@ -377,14 +402,20 @@ export default function CreateExamPage() {
                       className="mt-1 w-4 h-4"
                     />
                     <div className="flex-1">
-                      <div
-                        className="font-medium"
-                        dangerouslySetInnerHTML={{ __html: q.question }}
-                      />
+                      <div className="font-medium">{q.question}</div>
                       <div className="text-sm text-gray-600 mt-1">
-                        Түвшин ID: {q.level_id} | Оноо: {q.point} | Төрөл:{" "}
-                        {q.type}
+                        <span className="inline-block px-2 py-1 bg-gray-100 rounded text-xs mr-2">
+                          {getTypeName(q.type_id)}
+                        </span>
+                        <span className="inline-block px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
+                          {getLevelName(q.level_id)}
+                        </span>
                       </div>
+                      {q.option && q.option.length > 0 && (
+                        <div className="text-xs text-gray-500 mt-2">
+                          Сонголт: {q.option.length} ширхэг
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -430,14 +461,20 @@ export default function CreateExamPage() {
                       className="mt-1 w-4 h-4"
                     />
                     <div className="flex-1">
-                      <div
-                        className="font-medium"
-                        dangerouslySetInnerHTML={{ __html: q.question }}
-                      />
+                      <div className="font-medium">{q.question}</div>
                       <div className="text-sm text-gray-600 mt-1">
-                        Түвшин ID: {q.level_id} | Оноо: {q.point} | Төрөл:{" "}
-                        {q.type}
+                        <span className="inline-block px-2 py-1 bg-gray-100 rounded text-xs mr-2">
+                          {getTypeName(q.type_id)}
+                        </span>
+                        <span className="inline-block px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">
+                          {getLevelName(q.level_id)}
+                        </span>
                       </div>
+                      {q.option && q.option.length > 0 && (
+                        <div className="text-xs text-gray-500 mt-2">
+                          Сонголт: {q.option.length} ширхэг
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -481,14 +518,20 @@ export default function CreateExamPage() {
                       className="mt-1 w-4 h-4"
                     />
                     <div className="flex-1">
-                      <div
-                        className="font-medium"
-                        dangerouslySetInnerHTML={{ __html: q.question }}
-                      />
+                      <div className="font-medium">{q.question}</div>
                       <div className="text-sm text-gray-600 mt-1">
-                        Түвшин ID: {q.level_id} | Оноо: {q.point} | Төрөл:{" "}
-                        {q.type}
+                        <span className="inline-block px-2 py-1 bg-gray-100 rounded text-xs mr-2">
+                          {getTypeName(q.type_id)}
+                        </span>
+                        <span className="inline-block px-2 py-1 bg-red-100 text-red-700 rounded text-xs">
+                          {getLevelName(q.level_id)}
+                        </span>
                       </div>
+                      {q.option && q.option.length > 0 && (
+                        <div className="text-xs text-gray-500 mt-2">
+                          Сонголт: {q.option.length} ширхэг
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

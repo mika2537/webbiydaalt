@@ -96,6 +96,8 @@ export default function EditExamPage() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          id: Number(exam_id),
+          course_id: exam?.course_id,
           name: formData.name.trim(),
           description: formData.description.trim(),
           open_on: new Date(formData.open_on).toISOString(),
@@ -133,13 +135,17 @@ export default function EditExamPage() {
         method: "DELETE",
       });
 
-      if (!res.ok) throw new Error("Delete failed");
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("❌ DELETE ERROR:", errorData);
+        throw new Error(errorData.message || "Delete failed");
+      }
 
       setMessage("✅ Шалгалт амжилттай устгагдлаа!");
       setTimeout(() => navigate("/team6"), 1000);
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ Error deleting exam:", error);
-      setMessage("⚠️ Шалгалт устгахад алдаа гарлаа!");
+      setMessage(`⚠️ Шалгалт устгахад алдаа гарлаа: ${error.message}`);
       setDeleting(false);
     }
   };
@@ -333,7 +339,7 @@ export default function EditExamPage() {
         {message && (
           <p
             className={`mt-6 text-center font-medium ${
-              message.includes("✅") ? "text-green-600" : "text-red-600"
+              message ? "text-green-600" : "text-red-600"
             }`}
           >
             {message}
