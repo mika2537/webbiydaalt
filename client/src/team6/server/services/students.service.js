@@ -1,6 +1,6 @@
 import * as ExamsService from "./exams.service.js";
 
-let StudentAnswers = []; // in-memory
+let StudentAnswers = [];
 
 export async function getStudentExam({ exam_id, student_id }) {
   let obj = StudentAnswers.find(
@@ -22,7 +22,6 @@ export async function updateStudentExam({ exam_id, student_id }, data) {
     StudentAnswers.push(obj);
   }
 
-  // store in local shape: expected array of { questionId, response }
   obj.answers = data.answers || [];
   return obj;
 }
@@ -43,11 +42,9 @@ export async function checkExam({ exam_id, student_id }) {
   const details = [];
 
   for (const q of questions) {
-    // q may be lightweight; if LMS returns 'answer' or 'correctAnswers', adapt accordingly.
     const ansObj = student.answers.find((a) => a.questionId == q.id);
     const response = ansObj?.response || [];
 
-    // If q.correctAnswers exists, use it. If not, use q.answer or empty.
     const correctAnswers = q.correctAnswers || (q.answer ? [q.answer] : []);
     const isCorrect =
       correctAnswers.length > 0

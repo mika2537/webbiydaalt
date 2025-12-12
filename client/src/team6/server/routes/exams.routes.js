@@ -3,32 +3,20 @@ import * as ExamsController from "../controllers/exams.controller.js";
 
 const router = Router();
 
-// GET /api/exams - Get all exams
 router.get("/", ExamsController.getAllExams);
-
-// POST /api/exams - Create new exam
 router.post("/", ExamsController.createExam);
-
-// GET /api/exams/:id - Get exam by ID
 router.get("/:id", ExamsController.getExam);
-
-// PUT /api/exams/:id - Update exam
 router.put("/:id", ExamsController.updateExam);
-
-// GET /api/exams/:id/report - Get exam report
 router.get("/:id/report", ExamsController.getExamReport);
 
-// GET /api/exams/:id/stats - Get exam stats
 router.get("/:id/stats", async (req, res) => {
   try {
     const report = await ExamsController.getExamReport(req, res);
-    // Stats are included in report
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// GET /api/exams/:exam_id/variants - Get exam variants (proxy to variants service)
 router.get("/:exam_id/variants", async (req, res) => {
   try {
     const axios = (await import("axios")).default;
@@ -51,7 +39,6 @@ router.get("/:exam_id/variants", async (req, res) => {
   }
 });
 
-// GET /api/exams/:exam_id/students - Get exam students
 router.get("/:exam_id/students", async (req, res) => {
   try {
     const axios = (await import("axios")).default;
@@ -74,7 +61,6 @@ router.get("/:exam_id/students", async (req, res) => {
   }
 });
 
-// POST /api/exams/:exam_id/questions - Add question to exam
 router.post("/:exam_id/questions", async (req, res) => {
   try {
     const ExamsService = await import("../services/exams.service.js");

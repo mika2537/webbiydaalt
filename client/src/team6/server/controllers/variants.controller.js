@@ -1,6 +1,5 @@
 import * as VariantsService from "../services/variants.service.js";
 
-// GET /api/variants/exam/:exam_id - Get all variants for an exam
 export async function getVariants(req, res) {
   try {
     const data = await VariantsService.getVariants(req.params.exam_id);
@@ -13,7 +12,6 @@ export async function getVariants(req, res) {
   }
 }
 
-// POST /api/variants/exam/:exam_id - Create variant for exam
 export async function createVariant(req, res) {
   try {
     const data = await VariantsService.createVariant(
@@ -29,7 +27,6 @@ export async function createVariant(req, res) {
   }
 }
 
-// GET /api/variants/:id - Get one variant
 export async function getVariant(req, res) {
   try {
     const data = await VariantsService.getVariant(req.params.id);
@@ -42,7 +39,6 @@ export async function getVariant(req, res) {
   }
 }
 
-// PUT /api/variants/:id - Update variant
 export async function updateVariant(req, res) {
   try {
     const data = await VariantsService.updateVariant(req.params.id, req.body);
@@ -55,7 +51,6 @@ export async function updateVariant(req, res) {
   }
 }
 
-// DELETE /api/variants/:id - Delete variant
 export async function deleteVariant(req, res) {
   try {
     const data = await VariantsService.deleteVariant(req.params.id);
@@ -68,7 +63,6 @@ export async function deleteVariant(req, res) {
   }
 }
 
-// GET /api/variants/:id/questions - Get variant questions
 export async function getVariantQuestions(req, res) {
   try {
     const data = await VariantsService.getVariantQuestions(req.params.id);
@@ -81,7 +75,6 @@ export async function getVariantQuestions(req, res) {
   }
 }
 
-// POST /api/variants/:id/questions - Add question to variant
 export async function addQuestionToVariant(req, res) {
   try {
     const { question_id, point, priority } = req.body;
@@ -99,7 +92,6 @@ export async function addQuestionToVariant(req, res) {
   }
 }
 
-// DELETE /api/variants/:id/questions/:question_id - Remove question from variant
 export async function removeQuestionFromVariant(req, res) {
   try {
     const data = await VariantsService.removeQuestionFromVariant(
@@ -115,7 +107,6 @@ export async function removeQuestionFromVariant(req, res) {
   }
 }
 
-// GET /api/exams/:exam_id/questions - Get exam questions
 export async function getExamQuestions(req, res) {
   try {
     const data = await VariantsService.getExamQuestions(req.params.exam_id);

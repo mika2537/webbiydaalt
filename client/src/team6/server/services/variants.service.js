@@ -10,7 +10,6 @@ function getHeaders() {
   };
 }
 
-// GET ALL VARIANTS OF EXAM
 export async function getVariants(examId) {
   try {
     const response = await axios.get(`${LMS_API}/exams/${examId}/variants`, {
@@ -27,10 +26,8 @@ export async function getVariants(examId) {
   }
 }
 
-// CREATE VARIANT FOR EXAM
 export async function createVariant(examId, data) {
   try {
-    // First create the variant
     const response = await axios.post(
       `${LMS_API}/exams/${examId}/variants`,
       {
@@ -51,7 +48,6 @@ export async function createVariant(examId, data) {
   }
 }
 
-// GET ONE VARIANT
 export async function getVariant(variantId) {
   try {
     const response = await axios.get(`${LMS_API}/variants/${variantId}`, {
@@ -67,7 +63,6 @@ export async function getVariant(variantId) {
   }
 }
 
-// UPDATE VARIANT
 export async function updateVariant(variantId, data) {
   try {
     const response = await axios.put(`${LMS_API}/variants/${variantId}`, data, {
@@ -84,7 +79,6 @@ export async function updateVariant(variantId, data) {
   }
 }
 
-// DELETE VARIANT
 export async function deleteVariant(variantId) {
   try {
     const response = await axios.delete(`${LMS_API}/variants/${variantId}`, {
@@ -101,7 +95,6 @@ export async function deleteVariant(variantId) {
   }
 }
 
-// GET VARIANT QUESTIONS
 export async function getVariantQuestions(variantId) {
   try {
     const response = await axios.get(
@@ -119,7 +112,6 @@ export async function getVariantQuestions(variantId) {
   }
 }
 
-// ADD QUESTION TO VARIANT
 export async function addQuestionToVariant(variantId, questionId, data = {}) {
   try {
     const response = await axios.post(
@@ -142,7 +134,6 @@ export async function addQuestionToVariant(variantId, questionId, data = {}) {
   }
 }
 
-// REMOVE QUESTION FROM VARIANT
 export async function removeQuestionFromVariant(variantId, questionId) {
   try {
     const response = await axios.delete(
@@ -160,7 +151,6 @@ export async function removeQuestionFromVariant(variantId, questionId) {
   }
 }
 
-// GET EXAM QUESTIONS (direct from LMS)
 export async function getExamQuestions(examId) {
   try {
     const response = await axios.get(`${LMS_API}/exams/${examId}/questions`, {

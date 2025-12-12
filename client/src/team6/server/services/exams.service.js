@@ -19,9 +19,8 @@ export async function getAllExams() {
   }
 }
 
-let Exams = []; // local memory (optional)
+let Exams = [];
 
-// CREATE REAL EXAM ON TODU API
 export async function createExam(data) {
   const url = `${LMS_API}/courses/${data.courseId}/exams`;
 
@@ -38,7 +37,7 @@ export async function createExam(data) {
     point_expression: data.point_expression || "",
   };
 
-  console.log("📤 CREATE EXAM REQUEST:", { url, body });
+  console.log("CREATE EXAM REQUEST:", { url, body });
 
   const res = await fetch(url, {
     method: "POST",
@@ -54,7 +53,6 @@ export async function createExam(data) {
 
   const created = await res.json();
 
-  // Save locally if needed
   Exams.push(created);
 
   return created;
@@ -64,9 +62,6 @@ export async function getExam(id) {
   return Exams.find((x) => x.id == id);
 }
 
-// ------------------------------
-// UPDATE EXAM (PUT to LMS)
-// ------------------------------
 export async function updateExam(id, data) {
   const index = Exams.findIndex((x) => x.id == id);
   if (index === -1) return null;
@@ -84,7 +79,7 @@ export async function updateExam(id, data) {
     point_expression: data.point_expression || "",
   };
 
-  console.log("📤 UPDATE EXAM REQUEST:", { url, body });
+  console.log(" UPDATE EXAM REQUEST:", { url, body });
 
   const res = await fetch(url, {
     method: "PUT",
@@ -94,22 +89,19 @@ export async function updateExam(id, data) {
 
   if (!res.ok) {
     const errorText = await res.text();
-    console.error("❌ TODU UPDATE EXAM ERROR:", errorText);
+    console.error(" TODU UPDATE EXAM ERROR:", errorText);
     throw new Error(errorText);
   }
 
   const result = await res.json();
-  console.log("✅ EXAM UPDATED:", result);
+  console.log("EXAM UPDATED:", result);
   return result;
 }
 
-// ------------------------------
-// DELETE EXAM (DELETE from LMS)
-// ------------------------------
 export async function deleteExam(id) {
   const url = `${LMS_API}/exams/${id}`;
 
-  console.log("📤 DELETE EXAM REQUEST:", { url });
+  console.log(" DELETE EXAM REQUEST:", { url });
 
   const res = await fetch(url, {
     method: "DELETE",
@@ -118,17 +110,14 @@ export async function deleteExam(id) {
 
   if (!res.ok) {
     const errorText = await res.text();
-    console.error("❌ TODU DELETE EXAM ERROR:", errorText);
+    console.error("TODU DELETE EXAM ERROR:", errorText);
     throw new Error(errorText);
   }
 
-  console.log("✅ EXAM DELETED:", id);
+  console.log("EXAM DELETED:", id);
   return { success: true, id };
 }
 
-// ------------------------------
-// GET EXAM REPORT
-// ------------------------------
 export async function getExamReport(id) {
   try {
     // Try to get exam stats from LMS
@@ -162,23 +151,14 @@ export async function getExamReport(id) {
   };
 }
 
-// ------------------------------
-// IN-MEMORY DATABASE FOR EXAM QUESTIONS
-// ------------------------------
-let ExamQuestions = []; // { exam_id, question_id, point, priority }
+let ExamQuestions = [];
 
-// ------------------------------
-// GET EXAM QUESTIONS
-// ------------------------------
 export function getExamQuestions(exam_id) {
   const questions = ExamQuestions.filter((q) => q.exam_id == exam_id);
-  console.log(`✅ GET EXAM ${exam_id} QUESTIONS:`, questions);
+  console.log(` GET EXAM ${exam_id} QUESTIONS:`, questions);
   return questions;
 }
 
-// ------------------------------
-// ADD QUESTION TO EXAM
-// ------------------------------
 export function addQuestionToExam(exam_id, data) {
   const newQuestion = {
     exam_id: exam_id,
@@ -188,6 +168,6 @@ export function addQuestionToExam(exam_id, data) {
   };
 
   ExamQuestions.push(newQuestion);
-  console.log(`✅ ADDED QUESTION ${data.question_id} TO EXAM ${exam_id}`);
+  console.log(` ADDED QUESTION ${data.question_id} TO EXAM ${exam_id}`);
   return newQuestion;
 }

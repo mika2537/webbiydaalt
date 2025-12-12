@@ -5,7 +5,6 @@ const router = express.Router();
 
 const LMS_API = "https://todu.mn/bs/lms/v1";
 
-// Dynamic client uses fresh token every request
 function lms() {
   return axios.create({
     baseURL: LMS_API,
@@ -17,9 +16,6 @@ function lms() {
   });
 }
 
-// ------------------------------------------------------
-// 1) GET /api/courses/:course_id   → COURSE INFO
-// ------------------------------------------------------
 router.get("/:course_id", async (req, res) => {
   try {
     const client = lms();
@@ -36,9 +32,6 @@ router.get("/:course_id", async (req, res) => {
   }
 });
 
-// ------------------------------------------------------
-// 2) GET /api/courses/:course_id/exams   → ALL EXAMS
-// ------------------------------------------------------
 router.get("/:course_id/exams", async (req, res) => {
   try {
     const client = lms();
@@ -55,29 +48,6 @@ router.get("/:course_id/exams", async (req, res) => {
   }
 });
 
-// GET /api/courses/:course_id/exams - Get course exams
-router.get("/:course_id/exams", async (req, res) => {
-  try {
-    const { course_id } = req.params;
-
-    const response = await axios.get(`${LMS_API}/courses/${course_id}/exams`, {
-      headers: getHeaders(),
-    });
-
-    res.json(response.data);
-  } catch (error) {
-    console.error("Error fetching course exams:", error.message);
-    res.status(error.response?.status || 500).json({
-      error: error.message,
-      details: error.response?.data,
-    });
-  }
-});
-
-// ------------------------------
-// POST /api/courses/:course_id/exams
-// Create new exam for a course
-// ------------------------------
 router.post("/:course_id/exams", async (req, res) => {
   try {
     const { course_id } = req.params;
@@ -105,11 +75,6 @@ router.post("/:course_id/exams", async (req, res) => {
   }
 });
 
-// ------------------------------
-// GET /api/courses/:course_id/questions
-// Get all questions for a course (with optional filters)
-// Query params: level_id, type_id, limit, offset
-// ------------------------------
 router.get("/:course_id/questions", async (req, res) => {
   try {
     const { course_id } = req.params;
@@ -135,10 +100,6 @@ router.get("/:course_id/questions", async (req, res) => {
   }
 });
 
-// ------------------------------
-// POST /api/courses/:course_id/questions
-// Create new question for a course
-// ------------------------------
 router.post("/:course_id/questions", async (req, res) => {
   try {
     const { course_id } = req.params;

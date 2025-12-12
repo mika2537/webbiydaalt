@@ -10,9 +10,6 @@ const headers = () => ({
   "Content-Type": "application/json",
 });
 
-/* ------------------------------------------
-   GET /api/lms/exams/:exam_id - Get exam info
-------------------------------------------- */
 router.get("/exams/:exam_id", async (req, res) => {
   try {
     const r = await axios.get(`${LMS_API}/exams/${req.params.exam_id}`, {
@@ -20,14 +17,11 @@ router.get("/exams/:exam_id", async (req, res) => {
     });
     res.json(r.data);
   } catch (err) {
-    console.error("❌ GET EXAM ERROR:", err.response?.data || err.message);
+    console.error("GET EXAM ERROR:", err.response?.data || err.message);
     res.status(500).json(err.response?.data || err.message);
   }
 });
 
-/* ------------------------------------------
-   GET /api/lms/courses/:course_id/users - Get course users
-------------------------------------------- */
 router.get("/courses/:course_id/users", async (req, res) => {
   try {
     const r = await axios.get(
@@ -39,16 +33,13 @@ router.get("/courses/:course_id/users", async (req, res) => {
     res.json(r.data);
   } catch (err) {
     console.error(
-      "❌ GET COURSE USERS ERROR:",
+      " GET COURSE USERS ERROR:",
       err.response?.data || err.message
     );
     res.status(500).json(err.response?.data || err.message);
   }
 });
 
-/* ------------------------------------------
-   GET exam questions (student-specific)
-------------------------------------------- */
 router.get("/exams/:exam_id/questions", async (req, res) => {
   try {
     const r = await axios.get(
@@ -61,14 +52,11 @@ router.get("/exams/:exam_id/questions", async (req, res) => {
 
     res.json(r.data);
   } catch (err) {
-    console.error("❌ GET QUESTIONS ERROR:", err.response?.data || err.message);
+    console.error("GET QUESTIONS ERROR:", err.response?.data || err.message);
     res.status(500).json(err.response?.data || err.message);
   }
 });
 
-/* ------------------------------------------
-   GET /api/lms/questions/:id - Get question detail
-------------------------------------------- */
 router.get("/questions/:id", async (req, res) => {
   try {
     const r = await axios.get(`${LMS_API}/questions/${req.params.id}`, {
@@ -76,14 +64,11 @@ router.get("/questions/:id", async (req, res) => {
     });
     res.json(r.data);
   } catch (err) {
-    console.error("❌ GET QUESTION ERROR:", err.response?.data || err.message);
+    console.error("GET QUESTION ERROR:", err.response?.data || err.message);
     res.status(500).json(err.response?.data || err.message);
   }
 });
 
-/* ------------------------------------------
-   SAVE ONE ANSWER
-------------------------------------------- */
 router.put("/users/me/exams/:exam_id/questions", async (req, res) => {
   try {
     const r = await axios.put(
@@ -94,14 +79,11 @@ router.put("/users/me/exams/:exam_id/questions", async (req, res) => {
 
     res.json(r.data);
   } catch (err) {
-    console.error("❌ SAVE ANSWER ERROR:", err.response?.data || err.message);
+    console.error("SAVE ANSWER ERROR:", err.response?.data || err.message);
     res.status(500).json(err.response?.data || err.message);
   }
 });
 
-/* ------------------------------------------
-   SUBMIT FULL EXAM → ARRAY OF ANSWERS
-------------------------------------------- */
 router.put("/users/me/exams/:exam_id", async (req, res) => {
   try {
     const r = await axios.put(
@@ -112,15 +94,11 @@ router.put("/users/me/exams/:exam_id", async (req, res) => {
 
     res.json(r.data);
   } catch (err) {
-    console.error("❌ SUBMIT EXAM ERROR:", err.response?.data || err.message);
+    console.error("SUBMIT EXAM ERROR:", err.response?.data || err.message);
     res.status(500).json(err.response?.data || err.message);
   }
 });
 
-/* ------------------------------------------
-   START EXAM (Create exam sheet)
-   POST /users/me/exams/:exam_id
-------------------------------------------- */
 router.post("/users/me/exams/:exam_id", async (req, res) => {
   try {
     const r = await axios.post(
@@ -131,15 +109,11 @@ router.post("/users/me/exams/:exam_id", async (req, res) => {
 
     res.json(r.data);
   } catch (err) {
-    console.error("❌ START EXAM ERROR:", err.response?.data || err.message);
+    console.error(" START EXAM ERROR:", err.response?.data || err.message);
     res.status(500).json(err.response?.data || err.message);
   }
 });
 
-/* ------------------------------------------
-   GET MY EXAM INFO
-   GET /users/me/exams/:exam_id
-------------------------------------------- */
 router.get("/users/me/exams/:exam_id", async (req, res) => {
   try {
     const r = await axios.get(
@@ -149,15 +123,11 @@ router.get("/users/me/exams/:exam_id", async (req, res) => {
 
     res.json(r.data);
   } catch (err) {
-    console.error("❌ GET MY EXAM ERROR:", err.response?.data || err.message);
+    console.error(" GET MY EXAM ERROR:", err.response?.data || err.message);
     res.status(500).json(err.response?.data || err.message);
   }
 });
 
-/* ------------------------------------------
-   GET EXAM EVALUATION (result/score)
-   GET /exams/:exam_id/users/:user_id/attempts/:attempt/evaluation
-------------------------------------------- */
 router.get(
   "/exams/:exam_id/users/:user_id/attempts/:attempt/evaluation",
   async (req, res) => {
@@ -171,7 +141,7 @@ router.get(
       res.json(r.data);
     } catch (err) {
       console.error(
-        "❌ GET EVALUATION ERROR:",
+        " GET EVALUATION ERROR:",
         err.response?.data || err.message
       );
       res.status(500).json(err.response?.data || err.message);
@@ -179,10 +149,6 @@ router.get(
   }
 );
 
-/* ------------------------------------------
-   GET USER ATTEMPTS
-   GET /exams/:exam_id/users/:user_id/attempts
-------------------------------------------- */
 router.get("/exams/:exam_id/users/:user_id/attempts", async (req, res) => {
   try {
     const { exam_id, user_id } = req.params;
@@ -193,15 +159,11 @@ router.get("/exams/:exam_id/users/:user_id/attempts", async (req, res) => {
 
     res.json(r.data);
   } catch (err) {
-    console.error("❌ GET ATTEMPTS ERROR:", err.response?.data || err.message);
+    console.error(" GET ATTEMPTS ERROR:", err.response?.data || err.message);
     res.status(500).json(err.response?.data || err.message);
   }
 });
 
-/* ------------------------------------------
-   GET ATTEMPT QUESTIONS WITH ANSWERS
-   GET /exams/:exam_id/users/:user_id/attempts/:attempt/questions
-------------------------------------------- */
 router.get(
   "/exams/:exam_id/users/:user_id/attempts/:attempt/questions",
   async (req, res) => {
@@ -215,7 +177,7 @@ router.get(
       res.json(r.data);
     } catch (err) {
       console.error(
-        "❌ GET ATTEMPT QUESTIONS ERROR:",
+        " GET ATTEMPT QUESTIONS ERROR:",
         err.response?.data || err.message
       );
       res.status(500).json(err.response?.data || err.message);
@@ -223,10 +185,6 @@ router.get(
   }
 );
 
-/* ------------------------------------------
-   GET ALL MY EXAMS
-   GET /users/me/exams
-------------------------------------------- */
 router.get("/users/me/exams", async (req, res) => {
   try {
     const r = await axios.get(`${LMS_API}/users/me/exams`, {
@@ -235,51 +193,48 @@ router.get("/users/me/exams", async (req, res) => {
 
     res.json(r.data);
   } catch (err) {
-    console.error("❌ GET MY EXAMS ERROR:", err.response?.data || err.message);
+    console.error(" GET MY EXAMS ERROR:", err.response?.data || err.message);
     res.status(500).json(err.response?.data || err.message);
   }
 });
 
-/* ------------------------------------------
-   UPDATE EXAM
-   PUT /exams/:exam_id
-------------------------------------------- */
 router.put("/exams/:exam_id", async (req, res) => {
   try {
+    console.log(" UPDATE EXAM REQUEST:", {
+      exam_id: req.params.exam_id,
+      body: req.body,
+    });
+
     const r = await axios.put(
       `${LMS_API}/exams/${req.params.exam_id}`,
       req.body,
       { headers: headers() }
     );
 
+    console.log(" UPDATE EXAM RESPONSE:", r.data);
     res.json(r.data);
   } catch (err) {
-    console.error("❌ UPDATE EXAM ERROR:", err.response?.data || err.message);
+    console.error(" UPDATE EXAM ERROR:", err.response?.data || err.message);
     res.status(500).json(err.response?.data || err.message);
   }
 });
 
-/* ------------------------------------------
-   DELETE EXAM
-   DELETE /exams/:exam_id
-------------------------------------------- */
 router.delete("/exams/:exam_id", async (req, res) => {
   try {
     const r = await axios.delete(`${LMS_API}/exams/${req.params.exam_id}`, {
       headers: headers(),
     });
 
-    res.json(r.data);
+    // DELETE response хоосон байж болно
+    res.json({ success: true, message: "Exam deleted successfully" });
   } catch (err) {
-    console.error("❌ DELETE EXAM ERROR:", err.response?.data || err.message);
-    res.status(500).json(err.response?.data || err.message);
+    console.error(" DELETE EXAM ERROR:", err.response?.data || err.message);
+    res
+      .status(err.response?.status || 500)
+      .json(err.response?.data || { error: err.message });
   }
 });
 
-/* ------------------------------------------
-   GET COURSE QUESTIONS
-   GET /courses/:course_id/questions
-------------------------------------------- */
 router.get("/courses/:course_id/questions", async (req, res) => {
   try {
     const { limit = 100, offset = 0, level_id } = req.query;
@@ -290,17 +245,13 @@ router.get("/courses/:course_id/questions", async (req, res) => {
     res.json(r.data);
   } catch (err) {
     console.error(
-      "❌ GET COURSE QUESTIONS ERROR:",
+      "GET COURSE QUESTIONS ERROR:",
       err.response?.data || err.message
     );
     res.status(500).json(err.response?.data || err.message);
   }
 });
 
-/* ------------------------------------------
-   CREATE QUESTION
-   POST /courses/:course_id/questions
-------------------------------------------- */
 router.post("/courses/:course_id/questions", async (req, res) => {
   try {
     const r = await axios.post(
@@ -310,18 +261,11 @@ router.post("/courses/:course_id/questions", async (req, res) => {
     );
     res.json(r.data);
   } catch (err) {
-    console.error(
-      "❌ CREATE QUESTION ERROR:",
-      err.response?.data || err.message
-    );
+    console.error(" CREATE QUESTION ERROR:", err.response?.data || err.message);
     res.status(500).json(err.response?.data || err.message);
   }
 });
 
-/* ------------------------------------------
-   UPDATE QUESTION
-   PUT /questions/:question_id
-------------------------------------------- */
 router.put("/questions/:question_id", async (req, res) => {
   try {
     const r = await axios.put(
@@ -331,18 +275,11 @@ router.put("/questions/:question_id", async (req, res) => {
     );
     res.json(r.data);
   } catch (err) {
-    console.error(
-      "❌ UPDATE QUESTION ERROR:",
-      err.response?.data || err.message
-    );
+    console.error("UPDATE QUESTION ERROR:", err.response?.data || err.message);
     res.status(500).json(err.response?.data || err.message);
   }
 });
 
-/* ------------------------------------------
-   GET QUESTION LEVELS
-   GET /question-levels
-------------------------------------------- */
 router.get("/question-levels", async (req, res) => {
   try {
     const r = await axios.get(`${LMS_API}/question-levels`, {
@@ -351,17 +288,13 @@ router.get("/question-levels", async (req, res) => {
     res.json(r.data);
   } catch (err) {
     console.error(
-      "❌ GET QUESTION LEVELS ERROR:",
+      "GET QUESTION LEVELS ERROR:",
       err.response?.data || err.message
     );
     res.status(500).json(err.response?.data || err.message);
   }
 });
 
-/* ------------------------------------------
-   GET QUESTION TYPES
-   GET /question-types
-------------------------------------------- */
 router.get("/question-types", async (req, res) => {
   try {
     const r = await axios.get(`${LMS_API}/question-types`, {
@@ -370,17 +303,44 @@ router.get("/question-types", async (req, res) => {
     res.json(r.data);
   } catch (err) {
     console.error(
-      "❌ GET QUESTION TYPES ERROR:",
+      "GET QUESTION TYPES ERROR:",
       err.response?.data || err.message
     );
     res.status(500).json(err.response?.data || err.message);
   }
 });
 
-/* ------------------------------------------
-   GET EXAM QUESTIONS (for teacher/admin view)
-   GET /exams/:exam_id/questions
-------------------------------------------- */
+router.post("/courses/:course_id/exams", async (req, res) => {
+  try {
+    const r = await axios.post(
+      `${LMS_API}/courses/${req.params.course_id}/exams`,
+      req.body,
+      { headers: headers() }
+    );
+    res.json(r.data);
+  } catch (err) {
+    console.error(" CREATE EXAM ERROR:", err.response?.data || err.message);
+    res.status(500).json(err.response?.data || err.message);
+  }
+});
+
+router.post("/exams/:exam_id/questions", async (req, res) => {
+  try {
+    const r = await axios.post(
+      `${LMS_API}/exams/${req.params.exam_id}/questions`,
+      req.body,
+      { headers: headers() }
+    );
+    res.json(r.data);
+  } catch (err) {
+    console.error(
+      " ADD EXAM QUESTIONS ERROR:",
+      err.response?.data || err.message
+    );
+    res.status(500).json(err.response?.data || err.message);
+  }
+});
+
 router.get("/exams/:exam_id/all-questions", async (req, res) => {
   try {
     const r = await axios.get(
