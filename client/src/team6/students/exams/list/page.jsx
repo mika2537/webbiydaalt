@@ -9,14 +9,13 @@ export default function StudentDetailPage() {
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Load user exams
+  // Load exams
   useEffect(() => {
     async function load() {
       try {
         const res = await fetch(
           `https://todu.mn/bs/lms/v1/users/me/exams?current_user=${student_id}`,
           {
-            method: "GET",
             headers: {
               Accept: "application/json",
               Authorization: `Bearer ${TOKEN}`,
@@ -42,7 +41,7 @@ export default function StudentDetailPage() {
     load();
   }, [student_id, TOKEN]);
 
-  // ---------- START EXAM (POST) ----------
+  // Start exam POST
   const startExam = async (examId) => {
     try {
       const res = await fetch(
@@ -61,8 +60,6 @@ export default function StudentDetailPage() {
       );
 
       const data = await res.json();
-      console.log("Exam started:", data);
-
       navigate(`/team6/exams/${examId}/students/${student_id}/take`, {
         state: { attempt: data },
       });
@@ -73,43 +70,63 @@ export default function StudentDetailPage() {
 
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center text-lg">
         ⏳ Ачааллаж байна...
       </div>
     );
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <h1 className="text-3xl font-bold">🧑‍🎓 Таны шалгалтууд</h1>
+    <div className="min-h-screen bg-gray-100 p-6 flex gap-6">
+      {/* Left Sidebar */}
+      <div className="w-64 bg-white shadow rounded-lg p-4 h-max">
+        <h2 className="text-xl font-semibold mb-3">📚 Миний шалгалтууд</h2>
 
         {exams.length === 0 && (
-          <div className="text-gray-500">❌ Шалгалт олдсонгүй</div>
+          <p className="text-gray-500 text-sm">Шалгалт олдсонгүй</p>
         )}
 
-        {exams.map((exam) => (
-          <div
-            key={exam.id}
-            className="border p-4 rounded-lg bg-white shadow-sm"
-          >
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-xl font-semibold">{exam.name}</h2>
-                <p className="text-gray-600">
-                  Курс: {exam.course?.name || "N/A"}
-                </p>
-              </div>
+        <ul className="space-y-2">
+          {exams.map((exam, index) => (
+            <li
+              key={exam.id}
+              className="bg-gray-50 rounded border p-2 hover:bg-gray-100 cursor-pointer"
+            >
+              <span className="font-medium">
+                {index + 1}. {exam.name}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
 
-              {/* Replace Link → Button with POST request */}
-              <button
-                onClick={() => startExam(exam.id)}
-                className="px-5 py-3 bg-black text-white rounded-lg hover:bg-gray-800"
-              >
-                ▶ Шалгалт эхлүүлэх
-              </button>
+      {/* Main Content */}
+      <div className="flex-1">
+        <h1 className="text-3xl font-bold mb-6">🧑‍🎓 Таны шалгалтууд</h1>
+
+        <div className="space-y-5">
+          {exams.map((exam) => (
+            <div
+              key={exam.id}
+              className="bg-white shadow rounded-xl p-5 border"
+            >
+              <div className="flex justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold">{exam.name}</h2>
+                  <p className="text-gray-600 mt-1">
+                    Курс: {exam.course?.name || "N/A"}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => startExam(exam.id)}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow"
+                >
+                  ▶ Шалгалт эхлүүлэх
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
