@@ -6,7 +6,6 @@ dotenv.config();
 
 const app = express();
 
-// ⭐ ENABLE CORS ⭐
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -17,42 +16,31 @@ app.use(
 
 app.use(express.json());
 
-// Log every request
+// LOGGING
 app.use((req, res, next) => {
   console.log("➡️ REQUEST:", req.method, req.url);
   console.log("   BODY:", req.body);
   next();
-  console.log("TOKEN=", process.env.LMS_TOKEN);
 });
 
-// ----------------------
-// IMPORT ROUTES
-// ----------------------
+// -----------------------------------
+// ROUTES
+// -----------------------------------
 import examsRoutes from "./routes/exams.routes.js";
-import variantsRoutes from "./routes/variants.routes.js";
 import studentsRoutes from "./routes/students.routes.js";
-import coursesRoutes from "./routes/courses.routes.js";
-
-// ✅ ONLY USE NEW LMS PROXY
 import lmsProxyRoutes from "./routes/lms.proxy.routes.js";
 
-// ----------------------
-// REGISTER ROUTES
-// ----------------------
-
-// LMS Proxy – FORWARD requests to TODU API
-app.use("/api/lms", lmsProxyRoutes);
-
-// Course routes
-app.use("/api/courses", coursesRoutes);
-
+// Local exam CRUD
 app.use("/api/exams", examsRoutes);
-app.use("/api/variants", variantsRoutes);
+
+// Local student answer + result
 app.use("/api/students", studentsRoutes);
 
-// ----------------------
-// START SERVER
-// ----------------------
-app.listen(3001, () => {
-  console.log("Team6 API Server running on http://localhost:3001");
+// TODU LMS proxy
+app.use("/api/lms", lmsProxyRoutes);
+
+// Start server
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Team6 API running on http://localhost:${PORT}`);
 });

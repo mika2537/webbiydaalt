@@ -1,87 +1,56 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-
-interface StudentAnswer {
-  questionId: number;
-  response: string[];
-}
-
-interface Question {
-  id: number;
-  question: string;
-  type: string;
-  options?: string[];
-  correctAnswers: string[];
-  marks: number;
-  image?: string;
-}
+import { useParams, Link, useNavigate } from "react-router-dom";
 
 export default function CheckExamPage() {
   const { exam_id, student_id } = useParams();
+  const navigate = useNavigate();
 
-  const API_URL = "http://localhost:3001/api";
-
-  const [exam, setExam] = useState<any>(null);
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [studentAnswers, setStudentAnswers] = useState<StudentAnswer[]>([]);
+  const [exam, setExam] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [studentAnswers, setStudentAnswers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ---------------------------------------------------
-  // Load exam + questions + student answers
-  // ---------------------------------------------------
+  const API = "http://localhost:3001/api/lms";
+  const API_STUDENT = "http://localhost:3001/api/students";
+
   useEffect(() => {
     async function load() {
       try {
-        // 1. Exam info from LMS
-        const examRes = await fetch(`${API_URL}/lms/exams/${exam_id}`);
-        const examData = await examRes.json();
+        // 1) exam info
+        const resExam = await fetch(`${API}/exams/${exam_id}`);
+        const examData = await resExam.json();
         setExam(examData);
 
-        // 2. Question references from backend
-        const qRefsRes = await fetch(`${API_URL}/exams/${exam_id}/questions`);
-        const qRefs = await qRefsRes.json();
+        // 2) question groups (from LMS via proxy)
+        const resGroup = await fetch(
+          `${API}/exams/${exam_id}/questions?student_id=${student_id}`
+        );
+        const groups = await resGroup.json();
 
-        // 3. Load actual question details from LMS
-        const questionPromises = qRefs.map(async (ref: any) => {
-          const qRes = await fetch(
-            `${API_URL}/lms/questions/${ref.question_id}`
-          );
+        const fullQuestions = [];
+        for (const g of groups.items || []) {
+          // fetch real question detail
+          const qRes = await fetch(`${API}/questions/${g.id}`);
           const qData = await qRes.json();
 
-          // Fix options field
-          if (qData.option && Array.isArray(qData.option.options)) {
-            qData.options = qData.option.options;
-          }
-
-          return {
-            id: ref.question_id,
+          fullQuestions.push({
+            id: qData.id,
             question: qData.question,
-            type: qData.type_id === 10 ? "true_false" : "multiple_choice",
-            options: qData.options || [],
-            correctAnswers: qData.correct_answers || [],
-            marks: ref.point || 10,
-          };
-        });
+            options: qData.option || qData.options || [],
+            type_id: qData.type_id,
+            image: qData.image || null,
+            point: qData.point || 0,
+          });
+        }
 
-        const loadedQuestions = await Promise.all(questionPromises);
-        setQuestions(loadedQuestions);
+        setQuestions(fullQuestions);
 
-        // 4. Student answers
-        const studentRes = await fetch(
-          `${API_URL}/students/${exam_id}/${student_id}`
-        );
-        const studentData = await studentRes.json();
-
-        setStudentAnswers(
-          (studentData.answers || []).map((a: any) => ({
-            questionId: a.questionId,
-            response: Array.isArray(a.response)
-              ? a.response
-              : [a.response ?? ""],
-          }))
-        );
-      } catch (err) {
-        console.error("Error loading exam:", err);
+        // 3) load student's submitted answers from local students service
+        const resStu = await fetch(`${API_STUDENT}/${exam_id}/${student_id}`);
+        const stuData = await resStu.json();
+        setStudentAnswers(stuData.answers || []);
+      } catch (e) {
+        console.error("Check page load error:", e);
       } finally {
         setLoading(false);
       }
@@ -90,120 +59,71 @@ export default function CheckExamPage() {
     load();
   }, [exam_id, student_id]);
 
-  // ---------------------------------------------------
-  // Helpers
-  // ---------------------------------------------------
-  const getAnswer = (qid: number) =>
-    studentAnswers.find((a) => a.questionId === qid)?.response;
-
-  const isCorrectAnswer = (q: Question, answer?: string[]) => {
-    if (!answer || answer.length === 0) return false;
-
-    if (q.type === "multiple_choice")
-      return q.correctAnswers.includes(answer[0]);
-
-    if (q.type === "multiple_correct") {
-      if (answer.length !== q.correctAnswers.length) return false;
-      return q.correctAnswers.every((x) => answer.includes(x));
-    }
-
-    if (q.type === "fill_blank" || q.type === "text_answer") {
-      const a = answer[0].trim().toLowerCase();
-      return q.correctAnswers.some((c) => c.trim().toLowerCase() === a);
-    }
-
-    return false;
+  const getAnswer = (qid) => {
+    const a = studentAnswers.find((x) => x.questionId === qid);
+    return a ? a.response : [];
   };
 
-  // ---------------------------------------------------
-  // UI — Loading / No Data
-  // ---------------------------------------------------
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        ⏳ Ачаалж байна…
+      <div className="min-h-screen flex justify-center items-center">
+        ⏳ Шалгалтын мэдээлэл ачаалж байна...
       </div>
     );
 
-  if (!exam || questions.length === 0)
+  if (!exam)
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        ❌ Мэдээлэл олдсонгүй.
-        <Link to="/team6/student" className="underline ml-3">
+      <div className="min-h-screen flex flex-col justify-center items-center">
+        ❌ Шалгалт олдсонгүй
+        <Link className="underline mt-4" to="/team6">
           Буцах
         </Link>
       </div>
     );
 
-  // ---------------------------------------------------
-  // UI — RESULT PAGE
-  // ---------------------------------------------------
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow">
-        <Link
-          to={`/team6/exams/${exam_id}/students/${student_id}/result`}
-          className="text-gray-600 hover:text-black"
-        >
-          ← Буцах
-        </Link>
+      <div className="max-w-5xl mx-auto bg-white p-8 rounded-lg shadow">
+        <div className="flex justify-between">
+          <h1 className="text-2xl font-bold">{exam.name}</h1>
+          <Link to="/team6" className="text-sm underline">
+            Буцах
+          </Link>
+        </div>
 
-        <h1 className="text-3xl font-bold mt-4 mb-1">Таны хариултууд</h1>
-        <p className="mb-6 text-gray-600">{exam.name}</p>
+        <p className="mt-2 text-gray-600">{questions.length} асуулттай</p>
 
-        <div className="space-y-6">
-          {questions.map((q, index) => {
-            const answer = getAnswer(q.id);
-            const correct = isCorrectAnswer(q, answer);
-
+        <div className="mt-6 space-y-6">
+          {questions.map((q, i) => {
+            const ans = getAnswer(q.id);
             return (
-              <div
-                key={q.id}
-                className={`p-5 rounded-xl border-2 ${
-                  correct
-                    ? "border-green-300 bg-green-50"
-                    : "border-red-300 bg-red-50"
-                }`}
-              >
-                <h3 className="text-lg font-semibold mb-2">
-                  {index + 1}. {q.question}
+              <div key={q.id} className="p-5 bg-gray-50 border rounded-lg">
+                <h3 className="font-semibold mb-2">
+                  {i + 1}. {q.question}
                 </h3>
-
                 {q.image && (
-                  <img src={q.image} className="w-72 rounded border mb-3" />
+                  <img src={q.image} className="w-64 rounded border mb-3" />
                 )}
-
-                <p className="font-medium text-gray-700 text-sm">
+                <p className="font-semibold text-sm text-gray-700">
                   Таны хариулт:
                 </p>
-                <p
-                  className={`font-semibold ${
-                    correct ? "text-green-700" : "text-red-700"
-                  }`}
-                >
-                  {answer?.length ? answer.join(", ") : "—"}
+                <p className="text-blue-700 font-bold text-lg">
+                  {ans.length ? ans.join(", ") : "—"}
                 </p>
-
-                {!correct && (
-                  <div className="p-3 mt-3 rounded border bg-white">
-                    <p className="font-medium text-green-700">✓ Зөв хариулт:</p>
-                    <p className="font-semibold text-green-800">
-                      {q.correctAnswers.join(", ")}
-                    </p>
-                  </div>
-                )}
               </div>
             );
           })}
         </div>
 
         <div className="mt-10 flex justify-center">
-          <Link
-            to={`/team6/exams/${exam_id}/students/${student_id}/result`}
+          <button
+            onClick={() =>
+              navigate(`/team6/exams/${exam_id}/students/${student_id}/result`)
+            }
             className="px-6 py-3 bg-black text-white rounded-lg"
           >
-            Үр дүн рүү буцах
-          </Link>
+            Үр дүн үзэх
+          </button>
         </div>
       </div>
     </div>

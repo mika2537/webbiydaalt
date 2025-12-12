@@ -19,6 +19,9 @@ export async function getAllExams() {
   }
 }
 
+let Exams = []; // local memory (optional)
+
+// CREATE REAL EXAM ON TODU API
 export async function createExam(data) {
   const url = `${LMS_API}/courses/${data.courseId}/exams`;
 
@@ -49,32 +52,24 @@ export async function createExam(data) {
     throw new Error(errorText);
   }
 
-  const result = await res.json();
-  console.log("✅ EXAM CREATED:", result);
-  return result;
+  const created = await res.json();
+
+  // Save locally if needed
+  Exams.push(created);
+
+  return created;
 }
 
-// ------------------------------
-// GET SINGLE EXAM (from LMS)
-// ------------------------------
 export async function getExam(id) {
-  try {
-    const res = await fetch(`${LMS_API}/exams/${id}`, {
-      headers: getHeaders(),
-    });
-    if (!res.ok) throw new Error(await res.text());
-    return await res.json();
-  } catch (err) {
-    console.error("GET EXAM ERROR:", err);
-    return { error: err.message };
-  }
+  return Exams.find((x) => x.id == id);
 }
 
 // ------------------------------
 // UPDATE EXAM (PUT to LMS)
 // ------------------------------
 export async function updateExam(id, data) {
-  const url = `${LMS_API}/exams/${id}`;
+  const index = Exams.findIndex((x) => x.id == id);
+  if (index === -1) return null;
 
   const body = {
     name: data.name,

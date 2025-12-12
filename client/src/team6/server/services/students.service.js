@@ -1,44 +1,32 @@
 import * as ExamsService from "./exams.service.js";
 
-// Temporary in-memory DB
-let StudentAnswers = [];
+let StudentAnswers = []; // in-memory
 
-// =====================================================
-// LOAD STUDENT EXAM
-// =====================================================
 export async function getStudentExam({ exam_id, student_id }) {
   let obj = StudentAnswers.find(
     (x) => x.exam_id == exam_id && x.student_id == student_id
   );
-
   if (!obj) {
     obj = { exam_id, student_id, answers: [] };
     StudentAnswers.push(obj);
   }
-
   return obj;
 }
 
-// =====================================================
-// SAVE STUDENT ANSWERS
-// =====================================================
 export async function updateStudentExam({ exam_id, student_id }, data) {
   let obj = StudentAnswers.find(
     (x) => x.exam_id == exam_id && x.student_id == student_id
   );
-
   if (!obj) {
     obj = { exam_id, student_id, answers: [] };
     StudentAnswers.push(obj);
   }
 
-  obj.answers = data.answers;
+  // store in local shape: expected array of { questionId, response }
+  obj.answers = data.answers || [];
   return obj;
 }
 
-// =====================================================
-// AUTO CHECK EXAM
-// =====================================================
 export async function checkExam({ exam_id, student_id }) {
   const exam = await ExamsService.getExam(exam_id);
   const questionRefs = await ExamsService.getExamQuestions(exam_id);
@@ -46,8 +34,7 @@ export async function checkExam({ exam_id, student_id }) {
   const student = StudentAnswers.find(
     (x) => x.exam_id == exam_id && x.student_id == student_id
   );
-
-  if (!exam || !questionRefs || !student) {
+  if (!exam || !questions || !student) {
     return { error: "Data not found" };
   }
 
@@ -61,50 +48,56 @@ export async function checkExam({ exam_id, student_id }) {
 
   let correct = 0;
   let wrong = 0;
+  const details = [];
 
-  for (const ref of questionRefs) {
-    try {
-      // Get the actual question data from LMS
-      const qRes = await fetch(`${LMS_API}/questions/${ref.question_id}`, {
-        headers,
-      });
-      const question = await qRes.json();
+  for (const q of questions) {
+    // q may be lightweight; if LMS returns 'answer' or 'correctAnswers', adapt accordingly.
+    const ansObj = student.answers.find((a) => a.questionId == q.id);
+    const response = ansObj?.response || [];
 
-      const ansObj = student.answers.find(
-        (a) => a.questionId == ref.question_id
-      );
-      const response = ansObj?.response || [];
+    // If q.correctAnswers exists, use it. If not, use q.answer or empty.
+    const correctAnswers = q.correctAnswers || (q.answer ? [q.answer] : []);
+    const isCorrect =
+      correctAnswers.length > 0
+        ? response.length === correctAnswers.length &&
+          correctAnswers.every((c) => response.includes(c))
+        : false;
 
-      // Check if answer is correct
-      const correctAnswers = question.correct_answers || [];
-      const isCorrect =
-        response.length === correctAnswers.length &&
-        correctAnswers.every((c) => response.includes(c));
+    if (isCorrect) correct++;
+    else wrong++;
 
-      if (isCorrect) correct++;
-      else wrong++;
-    } catch (err) {
-      console.error(`Error checking question ${ref.question_id}:`, err);
-      wrong++;
-    }
+    details.push({
+      id: q.id,
+      question: q.question || q.title || "",
+      studentAnswer: response,
+      correctAnswers,
+      isCorrect,
+      point: q.point || 0,
+      level_id: q.level_id || 0,
+    });
   }
 
-  return { exam_id, student_id, correct, wrong };
+  return {
+    exam_id,
+    student_id,
+    correct,
+    wrong,
+    details,
+    exam_name: exam.name,
+    total: questions.length,
+  };
 }
 
-// =====================================================
-// FINAL RESULT
-// =====================================================
 export async function getResult({ exam_id, student_id }) {
   const exam = await ExamsService.getExam(exam_id);
-  const questionRefs = await ExamsService.getExamQuestions(exam_id);
-
+  const questions = await ExamsService.getExamQuestions(exam_id);
   const { correct, wrong } = await checkExam({ exam_id, student_id });
 
-  const total = questionRefs.length;
-
-  const score = Math.round((correct / total) * exam.total_point);
-  const grade = score >= exam.grade_point ? "PASS" : "FAIL";
+  const total = questions.length;
+  const score = Math.round(
+    (correct / Math.max(1, total)) * (exam.total_point || 100)
+  );
+  const grade = score >= (exam.grade_point || 0) ? "PASS" : "FAIL";
 
   return {
     exam_id,
@@ -114,5 +107,6 @@ export async function getResult({ exam_id, student_id }) {
     wrong,
     total,
     grade,
+    total_point: exam.total_point || 100,
   };
 }
