@@ -24,7 +24,7 @@ router.get("/:course_id", async (req, res) => {
     const response = await client.get(`/courses/${course_id}`);
     res.json(response.data);
   } catch (err) {
-    console.error("❌ LMS COURSE ERROR:", err.response?.data || err.message);
+    console.error(" LMS COURSE ERROR:", err.response?.data || err.message);
     res.status(err.response?.status || 500).json({
       error: "Failed to load course",
       details: err.response?.data,
@@ -40,7 +40,7 @@ router.get("/:course_id/exams", async (req, res) => {
     const response = await client.get(`/courses/${course_id}/exams`);
     res.json(response.data);
   } catch (err) {
-    console.error("❌ LMS EXAMS ERROR:", err.response?.data || err.message);
+    console.error(" LMS EXAMS ERROR:", err.response?.data || err.message);
     res.status(err.response?.status || 500).json({
       error: "Failed to load course exams",
       details: err.response?.data,
@@ -53,7 +53,7 @@ router.post("/:course_id/exams", async (req, res) => {
     const { course_id } = req.params;
     const body = req.body;
 
-    console.log("📤 CREATE EXAM:", { course_id, body });
+    console.log(" CREATE EXAM:", { course_id, body });
 
     const response = await axios.post(
       `${LMS_API}/courses/${course_id}/exams`,
@@ -61,11 +61,11 @@ router.post("/:course_id/exams", async (req, res) => {
       { headers: getHeaders() }
     );
 
-    console.log("✅ EXAM CREATED:", response.data);
+    console.log(" EXAM CREATED:", response.data);
     res.json(response.data);
   } catch (error) {
     console.error(
-      "❌ Error creating exam:",
+      " Error creating exam:",
       error.response?.data || error.message
     );
     res.status(error.response?.status || 500).json({
@@ -90,7 +90,7 @@ router.get("/:course_id/questions", async (req, res) => {
     res.json(response.data);
   } catch (error) {
     console.error(
-      "❌ Error fetching course questions:",
+      "Error fetching course questions:",
       error.response?.data || error.message
     );
     res.status(error.response?.status || 500).json({
@@ -105,7 +105,7 @@ router.post("/:course_id/questions", async (req, res) => {
     const { course_id } = req.params;
     const body = req.body;
 
-    console.log("📤 CREATE QUESTION:", { course_id, body });
+    console.log(" CREATE QUESTION:", { course_id, body });
 
     const response = await axios.post(
       `${LMS_API}/courses/${course_id}/questions`,
@@ -113,11 +113,11 @@ router.post("/:course_id/questions", async (req, res) => {
       { headers: getHeaders() }
     );
 
-    console.log("✅ QUESTION CREATED:", response.data);
+    console.log("QUESTION CREATED:", response.data);
     res.json(response.data);
   } catch (error) {
     console.error(
-      "❌ Error creating question:",
+      " Error creating question:",
       error.response?.data || error.message
     );
     res.status(error.response?.status || 500).json({

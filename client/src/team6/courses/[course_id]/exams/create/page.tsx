@@ -97,7 +97,6 @@ export default function CreateExamPage() {
   const hardQuestions = questionBank.filter(
     (q) => q.level_id === 50 || q.level_id === 60
   );
-
   const selectedEasy = easyQuestions.filter((q) =>
     selectedQuestionIds.has(q.id)
   ).length;

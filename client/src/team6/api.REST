@@ -51,6 +51,6 @@ Authorization: Bearer 1OwIXbKqj4glVSLyLg93bw
 Content-Type: application/json
 Accept: application/json
 ###
-DELETE  https://todu.mn/bs/lms/v1/courses/200/exams
+DELETE  https://todu.mn/bs/lms/v1/exams/162
 Authorization: Bearer 1OwIXbKqj4glVSLyLg93bw
 
