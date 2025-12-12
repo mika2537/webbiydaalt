@@ -101,7 +101,7 @@ export default function VariantListPage() {
                     key={v.id}
                     className="hover:bg-gray-50 cursor-pointer"
                     onClick={() =>
-                      navigate(`/team6/exams/${examId}/variants/${v.id}`)
+                      navigate(`/team6/exams/${exam_id}/variants/${v.id}`)
                     }
                   >
                     <td className="border p-2 text-center">{i + 1}</td>

@@ -80,8 +80,30 @@ export default function StudentExamStartPage() {
     return "active";
   };
 
-  const handleStartExam = () => {
-    navigate(`/team6/exams/${exam_id}/students/${id}/take`);
+  const handleStartExam = async () => {
+    try {
+      // Шалгалт эхлүүлэх - exam sheet үүсгэх
+      const res = await fetch(`${API_URL}/lms/users/me/exams/${exam_id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({}),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("Шалгалт эхлүүлэхэд алдаа:", errorData);
+        // Хэрэв аль хэдийн эхэлсэн бол үргэлжлүүлэх
+      }
+
+      navigate(`/team6/exams/${exam_id}/students/${id}/take`);
+    } catch (err) {
+      console.error("Start exam error:", err);
+      // Алдаа гарсан ч үргэлжлүүлэх (магадгүй өмнө эхэлсэн байж болно)
+      navigate(`/team6/exams/${exam_id}/students/${id}/take`);
+    }
   };
 
   if (loading) {

@@ -67,17 +67,17 @@ export default function Index() {
 
       {/* STUDENT TAKE EXAM */}
       <Route
-        path="exams/:exam_id/students/:student_id/take"
+        path="exams/:exam_id/students/:id/take"
         element={<StudentTakePage />}
       />
 
       {/* CHECK & RESULT */}
       <Route
-        path="exams/:exam_id/students/:student_id/check"
+        path="exams/:exam_id/students/:id/check"
         element={<StudentCheckPage />}
       />
       <Route
-        path="exams/:exam_id/students/:student_id/result"
+        path="exams/:exam_id/students/:id/result"
         element={<StudentResultPage />}
       />
 

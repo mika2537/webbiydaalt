@@ -17,15 +17,15 @@ export default function ExamReportPage() {
     const loadReport = async () => {
       try {
         // Load exam
-        const examRes = await fetch(`${API_URL}/exams/${examId}`);
+        const examRes = await fetch(`${API_URL}/exams/${exam_id}`);
         const examData = await examRes.json();
 
         // Load stats (correct endpoint)
-        const statsRes = await fetch(`${API_URL}/exams/${examId}/report`);
+        const statsRes = await fetch(`${API_URL}/exams/${exam_id}/report`);
         const statsData = await statsRes.json();
 
         // Load students
-        const resultsRes = await fetch(`${API_URL}/exams/${examId}/students`);
+        const resultsRes = await fetch(`${API_URL}/exams/${exam_id}/students`);
         const resultsData = await resultsRes.json();
 
         setExam(examData);
@@ -99,17 +99,17 @@ export default function ExamReportPage() {
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8">
           <StatCard
-            value={stats.total}
+            value={stats.total || 0}
             label="Нийт оролцогчид"
             color="text-gray-900"
           />
           <StatCard
-            value={stats.passed}
+            value={stats.passed || 0}
             label="Тэнцсэн"
             color="text-green-600"
           />
           <StatCard
-            value={stats.failed}
+            value={stats.failed || 0}
             label="Тэнцээгүй"
             color="text-red-600"
           />
@@ -205,7 +205,15 @@ export default function ExamReportPage() {
   );
 }
 
-const StatCard = ({ value, label, color }) => (
+const StatCard = ({
+  value,
+  label,
+  color,
+}: {
+  value: number | string;
+  label: string;
+  color: string;
+}) => (
   <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
     <div className={`text-4xl font-bold mb-2 ${color}`}>{value}</div>
     <div className="text-sm text-gray-600">{label}</div>

@@ -45,7 +45,7 @@ export default function EditVariantPage() {
       }
     };
     loadVariant();
-  }, [examId, variantId]);
+  }, [exam_id, variantId]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>

@@ -29,7 +29,7 @@ export async function updateStudentExam({ exam_id, student_id }, data) {
 
 export async function checkExam({ exam_id, student_id }) {
   const exam = await ExamsService.getExam(exam_id);
-  const questionRefs = await ExamsService.getExamQuestions(exam_id);
+  const questions = await ExamsService.getExamQuestions(exam_id);
 
   const student = StudentAnswers.find(
     (x) => x.exam_id == exam_id && x.student_id == student_id
@@ -37,14 +37,6 @@ export async function checkExam({ exam_id, student_id }) {
   if (!exam || !questions || !student) {
     return { error: "Data not found" };
   }
-
-  // Load actual question details from LMS for checking
-  const LMS_API = "https://todu.mn/bs/lms/v1";
-  const headers = {
-    Authorization: `Bearer ${process.env.LMS_TOKEN}`,
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  };
 
   let correct = 0;
   let wrong = 0;

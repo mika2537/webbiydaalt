@@ -47,13 +47,10 @@ Accept: application/json
 
 ###
 GET https://todu.mn/bs/lms/v1/users/200/exams
-Authorization: Bearer p9Mcpdxs7IdZbFNfRqLxbA
+Authorization: Bearer 1OwIXbKqj4glVSLyLg93bw
 Content-Type: application/json
 Accept: application/json
 ###
-GET https://todu.mn/bs/lms/v1/courses/200/exams
-Authorization: Bearer LgrtN81majHusm2itfWmGw
-Content-Type: application/json
-Accept: application/json
+DELETE  https://todu.mn/bs/lms/v1/courses/200/exams
+Authorization: Bearer 1OwIXbKqj4glVSLyLg93bw
 
-</file>
